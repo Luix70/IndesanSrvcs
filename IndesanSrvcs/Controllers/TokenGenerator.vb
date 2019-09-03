@@ -25,6 +25,11 @@ Namespace Controllers
 				notBefore:=DateTime.UtcNow,
 				expires:=DateTime.UtcNow.AddMinutes(Convert.ToInt32(expiretime)),
 				signingCredentials:=signingCredentials)
+
+			'Añadimos datos al payload
+			jwtSecurityToken.Payload("Rol") = "Administrador"
+			jwtSecurityToken.Payload("Preferencias") = "{color:dark, language: es}"
+
 			Dim jwtTokenString As String = tokenHandler.WriteToken(jwtSecurityToken)
 
 			Return jwtTokenString
