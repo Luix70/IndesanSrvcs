@@ -3,6 +3,7 @@ Imports System
 Imports System.IO
 Imports System.Text
 Imports System.Configuration
+Imports System.Globalization
 Public Class QueryJson
 
 	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
@@ -47,411 +48,524 @@ Public Class QueryJson
 
 		End Function
 	End Class
+	Private Class Scans
+		Public consulta As String
+		Public FechaConsulta As String
+		Public Scanners As New Collection
+		Public totalDocs As Integer
+		Public Status As String
+		Public errorcode As String
 
-	Private Class Representante
-		Public codrep As Long
-		Public nombre As String
-		Public clientes As New Collection
-		Public totalClientes As Integer
+		Function ObtenerScans() As Integer
 
-		Function obtenerClientes(codRepActual As Integer) As Integer
+			'Poblar la coleccion de documentos y dar valor al totalRepresentantes
+			Dim docs As Integer = 0
+			Dim objDoc As Scanner
 
-			Dim n_clientes As Integer = 0
-			Dim objCliente As Cliente
-
-			While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("codrep") = codRepActual
-
-				n_clientes += 1
-				objCliente = New Cliente
-
-				objCliente.codigo = dt.Rows(intCurrentRow).Item("codigo")
-				objCliente.rzs = dt.Rows(intCurrentRow).Item("rzs")
-				objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
-
-				objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
-
-				clientes.Add(objCliente, objCliente.codigo.ToString)
+			Dim intRows As Integer = dt.Rows.Count
 
 
+			While intRows > 0 And intCurrentRow < intRows
+
+				docs += 1
+
+				Dim numerador As Integer = dt.Rows(intCurrentRow).Item("numerador")
+				Dim documento As String = dt.Rows(intCurrentRow).Item("documento")
+				Dim tipodoc As String = dt.Rows(intCurrentRow).Item("tipodoc")
+				Dim codigodoc As Integer = dt.Rows(intCurrentRow).Item("codigodoc")
+				Dim Archivo As Integer = dt.Rows(intCurrentRow).Item("Archivo")
+				Dim codTipo As Integer = dt.Rows(intCurrentRow).Item("codTipo")
+				Dim TipoImagen As String = dt.Rows(intCurrentRow).Item("TipoImagen")
+				Dim ruta As String = dt.Rows(intCurrentRow).Item("ruta")
+
+				objDoc = New Scanner
+				objDoc.numerador = numerador
+				objDoc.documento = documento
+				objDoc.tipodoc = tipodoc
+				objDoc.codigodoc = codigodoc
+				objDoc.Archivo = Archivo
+				objDoc.codTipo = codTipo
+				objDoc.TipoImagen = TipoImagen
+				objDoc.ruta = ruta
+
+
+				' El método obtenerClientes debe depositar el cursor del DbReader en el ultimo registro
+				' correspondiente al representante actual
+
+
+				Scanners.Add(objDoc, numerador.ToString)
+				intCurrentRow += 1
 			End While
 
-			' devolvemos el cursor al ultimo registro del cliente o al ultimo de la tabla
-
-			Return n_clientes
+			Return docs
 
 		End Function
-
 	End Class
-
-	Private Class Cliente
-		Public codigo As String
-		Public rzs As String
-		Public poblacion As String
-		Public documentos As New Collection
-		Public totalDocumentos As Integer
-
-		Function obtenerDocumentos(codigo As String) As Integer
-
-			Dim n_documentos As Integer = 0
-			Dim objDoc As Documento
-
-			While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("codigo") = codigo
-
-				objDoc = New Documento
-				n_documentos += 1
-
-				objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
-				objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
-				objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1").ToString
-				objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
-
-				If IsDBNull(dt.Rows(intCurrentRow).Item("referencia")) Then
-					objDoc.referencia = ""
-				Else
-					objDoc.referencia = dt.Rows(intCurrentRow).Item("referencia")
-				End If
-
-				objDoc.totalLineas = objDoc.obtenerLineas(objDoc.tipodoc, objDoc.codigodoc)
-
-				documentos.Add(objDoc, objDoc.tipodoc & objDoc.codigodoc.ToString)
-
-
-
-			End While
-
-			Return n_documentos
-
-		End Function
-
-	End Class
-
-	Private Class Documento
+	Private Class Scanner
 		Public tipodoc As String
 		Public codigodoc As Long
-		Public fechapedido As String
-		Public Importebruto As Single
-		Public referencia As String
-		Public lineas As New Collection
-		Public totalLineas As Integer
+		Public documento As String
+		Public ruta As String
+		Public Archivo As Long
+		Public numerador As Long
+		Public TipoImagen As String
+		Public codTipo As Long
+	End Class
+	Private Class Representante
+			Public codrep As Long
+			Public nombre As String
+			Public clientes As New Collection
+			Public totalClientes As Integer
 
-		Function obtenerLineas(tipodoc As String, codigodoc As Long) As Integer
-			Dim n_lineas As Integer = 0
-			Dim objLinea As Linea
+			Function obtenerClientes(codRepActual As Integer) As Integer
 
-			While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("tipodoc") = tipodoc AndAlso dt.Rows(intCurrentRow).Item("codigodoc") = codigodoc
-				n_lineas += 1
-				objLinea = New Linea
+				Dim n_clientes As Integer = 0
+				Dim objCliente As Cliente
 
-				objLinea.linea = dt.Rows(intCurrentRow).Item("linea")
-				objLinea.coart = dt.Rows(intCurrentRow).Item("coart")
-				Try
-					If IsDBNull(dt.Rows(intCurrentRow).Item("cantidad")) Then
-						objLinea.cantidad = 0
+				While intCurrentRow < dt.Rows.Count AndAlso (dt.Rows(intCurrentRow).Item("codrep") = codRepActual Or codRepActual = 0)
+
+					n_clientes += 1
+					objCliente = New Cliente
+
+					objCliente.codigo = dt.Rows(intCurrentRow).Item("codigo")
+					objCliente.rzs = dt.Rows(intCurrentRow).Item("rzs")
+					objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
+
+					objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
+
+					clientes.Add(objCliente, objCliente.codigo.ToString)
+
+
+				End While
+
+				' devolvemos el cursor al ultimo registro del cliente o al ultimo de la tabla
+
+				Return n_clientes
+
+			End Function
+
+		End Class
+
+		Private Class Cliente
+			Public codigo As String
+			Public rzs As String
+			Public poblacion As String
+			Public documentos As New Collection
+			Public totalDocumentos As Integer
+
+			Function obtenerDocumentos(codigo As String) As Integer
+
+				Dim n_documentos As Integer = 0
+				Dim objDoc As Documento
+
+				While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("codigo") = codigo
+
+					objDoc = New Documento
+					n_documentos += 1
+
+					objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
+					objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
+					objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1").ToString
+					objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
+
+					If IsDBNull(dt.Rows(intCurrentRow).Item("referencia")) Then
+						objDoc.referencia = ""
 					Else
-						objLinea.cantidad = dt.Rows(intCurrentRow).Item("cantidad")
+						objDoc.referencia = dt.Rows(intCurrentRow).Item("referencia")
 					End If
-				Catch e As Exception
-					objLinea.cantidad = 0
-				End Try
+
+					objDoc.totalLineas = objDoc.obtenerLineas(objDoc.tipodoc, objDoc.codigodoc)
+
+					documentos.Add(objDoc, objDoc.tipodoc & objDoc.codigodoc.ToString)
 
 
-				objLinea.descripcion = dt.Rows(intCurrentRow).Item("descripcion")
-				If IsDBNull(dt.Rows(intCurrentRow).Item("ref_linea")) Then
-					objLinea.ref_linea = ""
-				Else
-					objLinea.ref_linea = dt.Rows(intCurrentRow).Item("ref_linea")
-				End If
 
-				objLinea.precio = dt.Rows(intCurrentRow).Item("precio")
+				End While
 
-				lineas.Add(objLinea, n_lineas.ToString)
+				Return n_documentos
 
-				intCurrentRow += 1
+			End Function
 
-			End While
+		End Class
 
-			Return n_lineas
+		Private Class Documento
+			Public tipodoc As String
+			Public codigodoc As Long
+			Public fechapedido As String
+			Public Importebruto As Single
+			Public referencia As String
+			Public lineas As New Collection
+			Public totalLineas As Integer
+
+			Function obtenerLineas(tipodoc As String, codigodoc As Long) As Integer
+				Dim n_lineas As Integer = 0
+				Dim objLinea As Linea
+
+				While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("tipodoc") = tipodoc AndAlso dt.Rows(intCurrentRow).Item("codigodoc") = codigodoc
+					n_lineas += 1
+					objLinea = New Linea
+
+					objLinea.linea = dt.Rows(intCurrentRow).Item("linea")
+					objLinea.coart = dt.Rows(intCurrentRow).Item("coart")
+					Try
+						If IsDBNull(dt.Rows(intCurrentRow).Item("cantidad")) Then
+							objLinea.cantidad = 0
+						Else
+							objLinea.cantidad = dt.Rows(intCurrentRow).Item("cantidad")
+						End If
+					Catch e As Exception
+						objLinea.cantidad = 0
+					End Try
 
 
+					objLinea.descripcion = dt.Rows(intCurrentRow).Item("descripcion")
+					If IsDBNull(dt.Rows(intCurrentRow).Item("ref_linea")) Then
+						objLinea.ref_linea = ""
+					Else
+						objLinea.ref_linea = dt.Rows(intCurrentRow).Item("ref_linea")
+					End If
+
+					objLinea.precio = dt.Rows(intCurrentRow).Item("precio")
+					objLinea.pedido = dt.Rows(intCurrentRow).Item("pedido")
+					objLinea.codLinea = dt.Rows(intCurrentRow).Item("codLinea")
+
+
+					lineas.Add(objLinea, n_lineas.ToString)
+
+					intCurrentRow += 1
+
+				End While
+
+				Return n_lineas
+
+
+
+			End Function
+
+		End Class
+		Private Class Linea
+			Public linea As Integer
+			Public coart As String
+			Public cantidad As Single
+			Public descripcion As String
+			Public ref_linea As String
+			Public precio As Single
+			Public pedido As String
+			Public codLinea As String
+		End Class
+
+		Public Function GenerarJson(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As Object
+
+
+
+			dt = New DataTable
+			intCurrentRow = 0
+
+
+
+			Dim strCadenaConsulta As String
+			strCadenaConsulta = CadenaConsulta(parCodRep, parCodCli, parTipodoc, parCodigodoc)
+
+			Dim Cons As New OleDb.OleDbConnection
+			Cons.ConnectionString = strConexion
+			Cons.Open()
+
+			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+				dad.Fill(dt)
+
+			End Using
+
+			Cons.Close()
+			Cons = Nothing
+
+			Dim res As New Resultado
+			res.consulta = strCadenaConsulta
+
+			Dim culture As New CultureInfo("en-US")
+			res.FechaConsulta = Now.ToString("o", culture)
+			res.totalRepresentantes = res.ObtenerRepresentantes()
+
+
+			dt = Nothing
+
+
+			Return res
 
 		End Function
-
-	End Class
-	Private Class Linea
-		Public linea As Integer
-		Public coart As String
-		Public cantidad As Single
-		Public descripcion As String
-		Public ref_linea As String
-		Public precio As Single
-	End Class
-
-	Public Function GenerarJson(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As String
+		Public Function GenerarScanJson(parTipodoc As String, parCodigodoc As String) As Object
 
 
-		Dim Json As String = ""
-		dt = New DataTable
-		intCurrentRow = 0
-		Dim js As JavaScriptSerializer
-		js = New JavaScriptSerializer()
 
-		Dim strCadenaConsulta As String
-		strCadenaConsulta = CadenaConsulta(parCodRep, parCodCli, parTipodoc, parCodigodoc)
+			dt = New DataTable
+			intCurrentRow = 0
+
+
+
+			Dim strCadenaConsulta As String
+		strCadenaConsulta = "SELECT Scan_docs_imgs.tipodoc, Scan_docs_imgs.codigodoc, Scan_imgs.documento, Scan_imgs.Archivo, Scan_imgs.numerador, scan_tipos_imagenes.TipoImagen, scan_tipos_imagenes.codTipo, Scan_Archivos.Nombre AS ruta
+FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan_tipos_imagenes.codTipo = Scan_imgs.tipoImagen) INNER JOIN Scan_docs_imgs ON Scan_imgs.numerador = Scan_docs_imgs.Cod_img) ON Scan_Archivos.Archivo = Scan_imgs.Archivo
+								WHERE (((Scan_docs_imgs.tipodoc)='" & parTipodoc & "') AND ((Scan_docs_imgs.codigodoc)=" & parCodigodoc & "));"
 
 		Dim Cons As New OleDb.OleDbConnection
-		Cons.ConnectionString = strConexion
-		Cons.Open()
+			Cons.ConnectionString = strConexion
+			Cons.Open()
 
-		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
 
-			dad.Fill(dt)
+				dad.Fill(dt)
 
-		End Using
+			End Using
 
-		Cons.Close()
-		Cons = Nothing
+			Cons.Close()
+			Cons = Nothing
 
-		Dim res As New Resultado
+		Dim res As New Scans
 		res.consulta = strCadenaConsulta
-		res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
-		res.totalRepresentantes = res.ObtenerRepresentantes()
+		res.totalDocs = res.ObtenerScans
 
-		Json = js.Serialize(res)
+		Dim culture As New CultureInfo("en-US")
+		res.FechaConsulta = Now.ToString("o", culture)
+
 
 		dt = Nothing
 
 
-		Return Json
+			Return res
 
-	End Function
+		End Function
+		Public Function GenerarJson2(parUsuario As String, parPassword As String) As String
 
-	Public Function GenerarJson2(parUsuario As String, parPassword As String) As String
+			Dim Json As String = ""
+			Dim culture As New CultureInfo("en-US")
+			intCurrentRow = 0
+			Dim js As JavaScriptSerializer
+			js = New JavaScriptSerializer()
+			js.MaxJsonLength = 50000000
 
-		Dim Json As String = ""
+			Dim strCadenaConsulta As String
 
-		intCurrentRow = 0
-		Dim js As JavaScriptSerializer
-		js = New JavaScriptSerializer()
-		js.MaxJsonLength = 10000000
+			strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.NombreUsuario ='" & parUsuario & "';"
+			Dim Cons As New OleDb.OleDbConnection
+			Cons.ConnectionString = strConexion
+			Cons.Open()
 
-		Dim strCadenaConsulta As String
+			dt = New DataTable
 
-		strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.NombreUsuario ='" & parUsuario & "';"
-		Dim Cons As New OleDb.OleDbConnection
-		Cons.ConnectionString = strConexion
-		Cons.Open()
+			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
 
-		dt = New DataTable
-
-		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
-
-			Try
-				dad.Fill(dt)
-			Catch ex As Exception
-				MsgBox(ex.Message)
-			End Try
+				Try
+					dad.Fill(dt)
+				Catch ex As Exception
+					MsgBox(ex.Message)
+				End Try
 
 
-		End Using
+			End Using
 
-		Cons.Close()
-		Cons = Nothing
+			Cons.Close()
+			Cons = Nothing
 
-		Dim res As New Resultado
+			Dim res As New Resultado
 
-		If dt.Rows.Count = 0 Then
-			res.consulta = "nulo"
-			res.Status = "noOK"
-			res.errorcode = "Usuario Inexistente"
-			res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
-			Json = js.Serialize(res)
-			Return Json
-
-		Else
-			If dt.Rows(0).Field(Of String)("Contraseña") <> parPassword Then
+			If dt.Rows.Count = 0 Then
 				res.consulta = "nulo"
 				res.Status = "noOK"
-				res.errorcode = "Contraseña errónea"
-				res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
+				res.errorcode = "Usuario Inexistente"
+				res.FechaConsulta = Now.ToString("o", culture)
 				Json = js.Serialize(res)
 				Return Json
+
 			Else
-				'Todo correcto
-				res.consulta = CadenaConsulta2("{tipoentidad:'" & dt.Rows(0).Field(Of String)("TipoEntidad") & "', AccesoCli:'" & dt.Rows(0).Field(Of String)("AccesoCli") & "', AccesoRep: '" & dt.Rows(0).Field(Of String)("AccesoRep") & "'}")
-				res.Status = "OK"
-				res.errorcode = ""
-				'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
-				If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") And (res.consulta = "SELECT * FROM listadoOperaciones where (codrep > 0);") Then
+				If dt.Rows(0).Field(Of String)("Contraseña") <> parPassword Then
+					res.consulta = "nulo"
+					res.Status = "noOK"
+					res.errorcode = "Contraseña errónea"
+					res.consulta = strCadenaConsulta
 
-					Dim strJson As String
-					Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 
-						' Read the stream to a string and write the string to the console.
-						strJson = sr.ReadToEnd()
+					res.FechaConsulta = Now.ToString("o", culture)
+					res.totalRepresentantes = res.ObtenerRepresentantes()
+					Json = js.Serialize(res)
+					Return Json
+				Else
+					'Todo correcto
+					res.consulta = CadenaConsulta2("{tipoentidad:'" & dt.Rows(0).Field(Of String)("TipoEntidad") & "', AccesoCli:'" & dt.Rows(0).Field(Of String)("AccesoCli") & "', AccesoRep: '" & dt.Rows(0).Field(Of String)("AccesoRep") & "'}")
+					res.Status = "OK"
+					res.FechaConsulta = Now.ToString("o", culture)
+					res.errorcode = ""
+					'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
+					If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") And (res.consulta = "SELECT * FROM listadoOperaciones where (codrep > 0);") Then
 
-					End Using
+						Dim strJson As String
+						Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 
-					res = js.Deserialize(Of Resultado)(strJson)
+							' Read the stream to a string and write the string to the console.
+							strJson = sr.ReadToEnd()
 
-					If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) < 60 Then
-						Return strJson
-					Else ' file is old
+						End Using
+
+						res = js.Deserialize(Of Resultado)(strJson)
+
+						If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) < 60 Then
+							Return strJson
+						Else ' file is old
+
+							Json = ConsultarDB(res.consulta)
+							Return Json
+
+						End If
+					Else 'file doesn't exists
 
 						Json = ConsultarDB(res.consulta)
 						Return Json
 
 					End If
-				Else 'file doesn't exists
-
-					Json = ConsultarDB(res.consulta)
-					Return Json
-
 				End If
 			End If
-		End If
 
-	End Function
-	Function ConsultarDB(sql As String) As String
-		' hay que leerlo de nuevo
-		Dim Res = New Resultado
-		Dim json As String = ""
-		Dim js As New JavaScriptSerializer()
-		js.MaxJsonLength = 10000000
+		End Function
+		Function ConsultarDB(sql As String) As String
+			' hay que leerlo de nuevo
+			Dim Res = New Resultado
+			Dim json As String = ""
+			Dim js As New JavaScriptSerializer()
+			js.MaxJsonLength = 50000000
 
-		dt = New DataTable
-		'Consultar de nuevo para llenar dt
-		Dim Cons2 As New OleDb.OleDbConnection
-		Cons2.ConnectionString = strConexion
-		Cons2.Open()
-		Using dad As New OleDb.OleDbDataAdapter(sql, Cons2)
+			dt = New DataTable
+			'Consultar de nuevo para llenar dt
+			Dim Cons2 As New OleDb.OleDbConnection
+			Cons2.ConnectionString = strConexion
+			Cons2.Open()
+			Using dad As New OleDb.OleDbDataAdapter(sql, Cons2)
 
-			Try
-				dad.Fill(dt)
-			Catch ex As Exception
-				MsgBox(ex.Message)
-			End Try
+				Try
+					dad.Fill(dt)
+				Catch ex As Exception
+					MsgBox(ex.Message)
+				End Try
 
-		End Using
+			End Using
 
-		Cons2.Close()
-		Cons2 = Nothing
+			Cons2.Close()
+			Cons2 = Nothing
 
 
-		Res.Status = "OK"
-		Res.errorcode = ""
-		Res.consulta = sql
-		Res.totalRepresentantes = Res.ObtenerRepresentantes()
-		Res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
-		json = js.Serialize(Res)
+			Res.Status = "OK"
+			Res.errorcode = ""
+			Res.consulta = sql
+			Res.totalRepresentantes = Res.ObtenerRepresentantes()
+			Res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
+			json = js.Serialize(Res)
 
-		If sql = "SELECT * FROM listadoOperaciones where (codrep > 0);" Then
+			If sql = "SELECT * FROM listadoOperaciones where (codrep > 0);" Then
 
-			'Aprovechamos que hacemos una consulta completa y la guardamos
+				'Aprovechamos que hacemos una consulta completa y la guardamos
 
-			If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
-				File.Delete(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
-			End If
-			Dim fs As FileStream = File.Create(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
-
-			AddText(fs, json)
-
-			fs.Close()
-
-		End If
-
-		dt = Nothing
-
-		Return json
-
-	End Function
-	Private Shared Sub AddText(ByVal fs As FileStream, ByVal value As String)
-		Dim info As Byte() = New UTF8Encoding(True).GetBytes(value)
-		fs.Write(info, 0, info.Length)
-	End Sub
-
-	Private Function CadenaConsulta(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As String
-		Dim strCadenaConsulta As String
-		Dim strCadenaConsultaBasica As String
-
-		strCadenaConsultaBasica = "SELECT * FROM listadopedidos WHERE ("
-		strCadenaConsulta = strCadenaConsultaBasica
-
-		If (IsNothing(parCodRep) And IsNothing(parCodCli) And IsNothing(parTipodoc) And IsNothing(parCodigodoc)) Then
-
-			strCadenaConsulta = "SELECT * FROM listadopedidos"
-
-		Else
-
-			If Not IsNothing(parCodRep) Then
-				strCadenaConsulta = strCadenaConsulta & "(codrep = " & parCodRep & ")"
-			End If
-
-			If Not IsNothing(parCodCli) Then
-				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-					strCadenaConsulta = strCadenaConsulta & " AND "
+				If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
+					File.Delete(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 				End If
-				strCadenaConsulta = strCadenaConsulta & "(codigo = '" & parCodCli & "')"
+				Dim fs As FileStream = File.Create(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
+
+				AddText(fs, json)
+
+				fs.Close()
+
 			End If
 
+			dt = Nothing
 
-			If Not IsNothing(parTipodoc) Then
-				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-					strCadenaConsulta = strCadenaConsulta & " AND "
+			Return json
+
+		End Function
+		Private Shared Sub AddText(ByVal fs As FileStream, ByVal value As String)
+			Dim info As Byte() = New UTF8Encoding(True).GetBytes(value)
+			fs.Write(info, 0, info.Length)
+		End Sub
+
+		Private Function CadenaConsulta(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As String
+			Dim strCadenaConsulta As String
+			Dim strCadenaConsultaBasica As String
+
+			strCadenaConsultaBasica = "SELECT * FROM listadopedidos WHERE ("
+			strCadenaConsulta = strCadenaConsultaBasica
+
+			If (IsNothing(parCodRep) And IsNothing(parCodCli) And IsNothing(parTipodoc) And IsNothing(parCodigodoc) And parCodigodoc <> "0") Then
+
+				strCadenaConsulta = "SELECT * FROM listadopedidos"
+
+			Else
+
+				If Not IsNothing(parCodRep) And parCodRep <> "0" Then
+					strCadenaConsulta = strCadenaConsulta & "(codrep = " & parCodRep & ")"
 				End If
-				strCadenaConsulta = strCadenaConsulta & "(tipodoc = '" & parTipodoc & "')"
-			End If
 
-			If Not IsNothing(parTipodoc) Then
-				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-					strCadenaConsulta = strCadenaConsulta & " AND "
+				If Not IsNothing(parCodCli) Then
+					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+						strCadenaConsulta = strCadenaConsulta & " AND "
+					End If
+					strCadenaConsulta = strCadenaConsulta & "(codigo = '" & parCodCli & "')"
 				End If
-				strCadenaConsulta = strCadenaConsulta & "(codigodoc = " & parCodigodoc & ")"
+
+
+				If Not IsNothing(parTipodoc) Then
+					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+						strCadenaConsulta = strCadenaConsulta & " AND "
+					End If
+					strCadenaConsulta = strCadenaConsulta & "(tipodoc = '" & parTipodoc & "')"
+				End If
+
+				If Not IsNothing(parTipodoc) Then
+					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+						strCadenaConsulta = strCadenaConsulta & " AND "
+					End If
+					strCadenaConsulta = strCadenaConsulta & "(codigodoc = " & parCodigodoc & ")"
+				End If
+
+				strCadenaConsulta = strCadenaConsulta & ");"
+
 			End If
 
-			strCadenaConsulta = strCadenaConsulta & ");"
+			Return strCadenaConsulta
 
-		End If
+		End Function
 
-		Return strCadenaConsulta
+		Private Function CadenaConsulta2(params As String) As String
+			Dim strCadenaConsulta As String
+			Dim strCadenaConsultaBasica As String
 
-	End Function
-
-	Private Function CadenaConsulta2(params As String) As String
-		Dim strCadenaConsulta As String
-		Dim strCadenaConsultaBasica As String
-
-		Dim jss As New JavaScriptSerializer()
-		Dim dict As Dictionary(Of String, String) = jss.Deserialize(Of Dictionary(Of String, String))(params)
+			Dim jss As New JavaScriptSerializer()
+			Dim dict As Dictionary(Of String, String) = jss.Deserialize(Of Dictionary(Of String, String))(params)
 
 
 
-		strCadenaConsultaBasica = "SELECT * FROM listadoOperaciones WHERE ("
-		strCadenaConsulta = strCadenaConsultaBasica
+			strCadenaConsultaBasica = "SELECT * FROM listadoOperaciones WHERE ("
+			strCadenaConsulta = strCadenaConsultaBasica
 
-		If (dict("AccesoCli") = "*" And dict("AccesoRep") = "*") Then
+			If (dict("AccesoCli") = "*" And dict("AccesoRep") = "*") Then
 
-			strCadenaConsulta = "SELECT * FROM listadoOperaciones where (codrep > 0);"
+				strCadenaConsulta = "SELECT * FROM listadoOperaciones where (codrep > 0);"
 
-		Else
+			Else
 
-			If dict("AccesoCli") = "*" And dict("AccesoRep") <> "-" Then
-				strCadenaConsulta = strCadenaConsulta & "(codrep IN (" & dict("AccesoRep") & "))"
+				If dict("AccesoCli") = "*" And dict("AccesoRep") <> "-" Then
+					strCadenaConsulta = strCadenaConsulta & "(codrep IN (" & dict("AccesoRep") & "))"
+				End If
+
+				If dict("AccesoCli") <> "*" And dict("AccesoRep") = "-" Then
+					strCadenaConsulta = strCadenaConsulta & "(codigo = '" & dict("AccesoCli") & "')"
+				End If
+
+
+				strCadenaConsulta = strCadenaConsulta & ");"
+
 			End If
 
-			If dict("AccesoCli") <> "*" And dict("AccesoRep") = "-" Then
-				strCadenaConsulta = strCadenaConsulta & "(codigo = '" & dict("AccesoCli") & "')"
-			End If
+			Return strCadenaConsulta
 
+		End Function
 
-			strCadenaConsulta = strCadenaConsulta & ");"
-
-		End If
-
-		Return strCadenaConsulta
-
-	End Function
-
-End Class
+	End Class
 
 
 
