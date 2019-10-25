@@ -9,6 +9,14 @@ Imports System.Web.Script.Serialization
 Imports System.Configuration
 Imports System.Data.SqlClient
 Imports System.Web.Services.Protocols
+Imports System.Web.Hosting
+Imports System.IO
+Imports PdfSharp.Pdf
+Imports PdfSharp.Drawing
+Imports System.Drawing
+Imports System.Drawing.Imaging
+
+
 ' Para permitir que se llame a este servicio web desde un script, usando ASP.NET AJAX, quite la marca de comentario de la línea siguiente.
 
 <System.Web.Services.WebService(Namespace:="http://servicios.indesan.com/")>
@@ -21,6 +29,8 @@ Public Class JData
 	Private Const StrResponseNew As String = "Hello World"
 	Public SoapHeader As TokenAuthUser
 
+	Dim cache As New MemoryCacher
+
 	<WebMethod()>
 	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
 	Public Sub JPedidos()
@@ -29,20 +39,142 @@ Public Class JData
 		Dim parCodCli As String = HttpContext.Current.Request.Params("cc")
 		Dim parCodigodoc As String = HttpContext.Current.Request.Params("cd")
 		Dim parTipodoc As String = HttpContext.Current.Request.Params("td")
+		Dim Json As String
+
+		Dim js As New JavaScriptSerializer()
+
+		js.MaxJsonLength = 50000000
+
+
 
 		Dim qj As New QueryJson()
 
-		Dim resultados As String
+		Dim resultados As Object
 
-		resultados = qj.GenerarJson(parCodRep, parCodCli, parTipodoc, parCodigodoc)
+		resultados = cache.GetValue("datos")
+
+		If IsNothing(resultados) Then
+
+			resultados = qj.GenerarJson(Nothing, parCodCli, parTipodoc, parCodigodoc)
+			cache.Add("datos", resultados, New DateTimeOffset(DateTime.Now.AddMinutes(ConfigurationManager.AppSettings("CACHE_PERSISTENCE"))))
+
+
+		End If
+
+		Json = js.Serialize(resultados)
 
 		HttpContext.Current.Response.Clear()
 		HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 		HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
-		HttpContext.Current.Response.Write(resultados)
+		HttpContext.Current.Response.Write(Json)
 
 
 	End Sub
+
+	<WebMethod()>
+	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
+	Public Sub JScans()
+
+		Dim parCodigodoc As String = HttpContext.Current.Request.Params("cd")
+		Dim parTipodoc As String = HttpContext.Current.Request.Params("td")
+
+		Dim Json As String
+
+		Dim js As New JavaScriptSerializer()
+
+		js.MaxJsonLength = 50000000
+
+
+		If parCodigodoc = "" Or parTipodoc = "" Then
+
+
+			Json = "{error: 'no se han suministrado los parámetros necesarios'}"
+
+			HttpContext.Current.Response.Clear()
+			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
+			HttpContext.Current.Response.Write(Json)
+		Else
+
+			Dim qj As New QueryJson()
+
+			Dim resultados As Object
+
+			resultados = qj.GenerarScanJson(parTipodoc, parCodigodoc)
+
+			Json = js.Serialize(resultados)
+
+			HttpContext.Current.Response.Clear()
+			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
+			HttpContext.Current.Response.Write(Json)
+
+		End If
+
+
+
+	End Sub
+
+	<WebMethod()>
+	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
+	Public Sub JTransferScan()
+
+		Dim parRuta As String = HttpContext.Current.Request.Params("ruta")
+		Dim parTipodoc As String = HttpContext.Current.Request.Params("td")
+		Dim parCodigoc As String = HttpContext.Current.Request.Params("cd")
+		Dim parTipoArchivo As String = HttpContext.Current.Request.Params("tipoArchivo")
+
+		Dim Json As String
+
+
+		Dim nombreDocumento As String = parTipodoc + parCodigoc + "-" + parTipoArchivo.Split(" ")(0) + ".pdf"
+
+		If parRuta = "" Or parRuta = "" Then
+			Dim filePath As String = "no se han suminsitrado los parámetros necesarios"
+
+			Json = "{error: " + filePath + "}"
+
+			HttpContext.Current.Response.Clear()
+			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
+			HttpContext.Current.Response.Write(Json)
+		Else
+
+
+
+			Dim filePath As String = "\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta
+
+			If parRuta.Substring(parRuta.Length - 3, 3) = "tif" Then
+
+				Dim uri As New Uri("\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta)
+				If uri.IsFile Then
+					Dim filename As String = System.IO.Path.GetFileName(uri.LocalPath)
+
+					filePath = tiff2PDF("\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta)
+				End If
+			End If
+
+			With HttpContext.Current.Response
+				.Clear()
+				.AddHeader("Content-Disposition", "attachment;filename=" + nombreDocumento)
+				.AppendHeader("Access-Control-Allow-Origin", "*")
+				.BinaryWrite(System.IO.File.ReadAllBytes(filePath))
+
+				.Flush()
+				.End()
+
+			End With
+
+
+
+		End If
+
+
+
+
+
+	End Sub
+
 	<WebMethod()>
 	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
 	Public Sub JOps()
@@ -171,6 +303,33 @@ Public Class JData
 			End Set
 		End Property
 	End Class
+
+	Public Function tiff2PDF(ByVal fileName As String) As String
+		Dim doc As PdfDocument = New PdfDocument
+		Dim tiff As New TiffImageSplitter()
+		Dim nfilename As String = "error"
+		Dim pageCount As Integer = tiff.getPageCount(fileName)
+
+		For i = 0 To pageCount - 1
+			Dim page As PdfPage = New PdfPage
+			Dim tiffImg As Image = tiff.getTiffImage(fileName, i)
+			Dim img As XImage = XImage.FromGdiPlusImage(tiffImg)
+			page.Width = img.PointWidth
+			page.Height = img.PointHeight
+			doc.Pages.Add(page)
+			Dim xgr As XGraphics = XGraphics.FromPdfPage(doc.Pages(i))
+			xgr.DrawImage(img, 0, 0)
+		Next
+		nfilename = fileName.Replace(".tif", ".pdf")
+
+		doc.Save(nfilename)
+
+		doc.Close()
+
+		Return nfilename
+
+	End Function
+
 
 End Class
 
@@ -326,5 +485,65 @@ Public Class TokenAuthUser
 
 		Return False
 
+	End Function
+End Class
+
+Public Class TiffImageSplitter
+	Public Function getPageCount(ByVal fileName As String) As Integer
+		Dim pageCount = -1
+
+		Try
+			Dim img As Image = Bitmap.FromFile(fileName)
+			pageCount = img.GetFrameCount(FrameDimension.Page)
+			img.Dispose()
+		Catch ex As Exception
+			pageCount = 0
+		End Try
+
+		Return pageCount
+	End Function
+
+	Public Function getPageCount(ByVal img As Image) As Integer
+		Dim pageCount = -1
+
+		Try
+			pageCount = img.GetFrameCount(FrameDimension.Page)
+		Catch ex As Exception
+			pageCount = 0
+		End Try
+
+		Return pageCount
+	End Function
+
+	Public Function getTiffImage(ByVal sourceFile As String, ByVal pageNumber As Integer) As Image
+		Dim returnImage As Image = Nothing
+
+		Try
+			Dim sourceIamge As Image = Bitmap.FromFile(sourceFile)
+			returnImage = getTiffImage(sourceIamge, pageNumber)
+			sourceIamge.Dispose()
+		Catch ex As Exception
+			returnImage = Nothing
+		End Try
+
+		Return returnImage
+	End Function
+
+	Public Function getTiffImage(ByVal sourceImage As Image, ByVal pageNumber As Integer) As Image
+		Dim ms As MemoryStream = Nothing
+		Dim returnImage As Image = Nothing
+
+		Try
+			ms = New MemoryStream
+			Dim objGuid As Guid = sourceImage.FrameDimensionsList(0)
+			Dim objDimension As FrameDimension = New FrameDimension(objGuid)
+			sourceImage.SelectActiveFrame(objDimension, pageNumber)
+			sourceImage.Save(ms, ImageFormat.Tiff)
+			returnImage = Image.FromStream(ms)
+		Catch ex As Exception
+			returnImage = Nothing
+		End Try
+
+		Return returnImage
 	End Function
 End Class
