@@ -15,6 +15,7 @@ Imports PdfSharp.Pdf
 Imports PdfSharp.Drawing
 Imports System.Drawing
 Imports System.Drawing.Imaging
+Imports System.Web.Http
 
 
 ' Para permitir que se llame a este servicio web desde un script, usando ASP.NET AJAX, quite la marca de comentario de la línea siguiente.
@@ -142,15 +143,15 @@ Public Class JData
 
 
 
-			Dim filePath As String = "\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta
+			Dim filePath As String = ConfigurationManager.AppSettings("LOCAL_VAULT") + parRuta
 
 			If parRuta.Substring(parRuta.Length - 3, 3) = "tif" Then
 
-				Dim uri As New Uri("\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta)
+				Dim uri As New Uri(filePath)
 				If uri.IsFile Then
 					Dim filename As String = System.IO.Path.GetFileName(uri.LocalPath)
 
-					filePath = tiff2PDF("\\Servidor2\datos\GESTION\Archivos\Fax-Scanner\Historico\" + parRuta)
+					filePath = tiff2PDF(filePath)
 				End If
 			End If
 
@@ -174,7 +175,18 @@ Public Class JData
 
 
 	End Sub
+	<WebMethod()>
+	<Authorize>
+	<HttpPost>
+	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
+	Public Function JAddScan(<FromBody> nombre) As String
 
+
+
+		Return ("{OK : " & nombre & "}")
+
+
+	End Function
 	<WebMethod()>
 	<ScriptMethod(ResponseFormat:=ResponseFormat.Json)>
 	Public Sub JOps()
