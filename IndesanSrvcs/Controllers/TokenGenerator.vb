@@ -2,10 +2,12 @@
 Imports System.Configuration
 Imports System.Security.Claims
 Imports Microsoft.IdentityModel.Tokens
+Imports IndesanSrvcs.Models
+Imports System.Reflection
 
 Namespace Controllers
 	Friend Module TokenGenerator
-		Public Function GenerateTokenJwt(username As String) As String
+		Public Function GenerateTokenJwt(username As String, cr As Credencial) As String
 			Dim secretKey As String = ConfigurationManager.AppSettings("JWT_SECRET_KEY")
 			Dim audienceToken As String = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
 			Dim issuerToken As String = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
@@ -27,8 +29,18 @@ Namespace Controllers
 				signingCredentials:=signingCredentials)
 
 			'Añadimos datos al payload
-			jwtSecurityToken.Payload("Rol") = "Administrador"
-			jwtSecurityToken.Payload("Preferencias") = "{color:dark, language: es}"
+
+
+
+
+
+
+			Dim info() As PropertyInfo = cr.GetType().GetProperties()
+
+			For Each prop As PropertyInfo In info
+				jwtSecurityToken.Payload(prop.Name) = prop.GetValue(cr, Nothing)
+
+			Next
 
 			Dim jwtTokenString As String = tokenHandler.WriteToken(jwtSecurityToken)
 

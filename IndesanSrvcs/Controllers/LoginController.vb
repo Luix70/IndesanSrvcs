@@ -5,6 +5,7 @@ Imports System.Threading
 Imports System.Web.Http
 Imports IndesanSrvcs.Models
 
+
 Namespace Controllers
 	<AllowAnonymous>
 	<RoutePrefix("api/login")>
@@ -30,14 +31,22 @@ Namespace Controllers
 				Throw New HttpResponseException(HttpStatusCode.BadRequest)
 			End If
 
-			Dim isCredentialValid As Boolean = (login.Password = "123456")
-			'TODO: Validate credentials Correctly, this code Is only for demo !!
+			Dim cr As Credencial = VerificarCredenciales(login)
+			Dim isCredentialValid As Boolean = (cr.IdCredencial <> -1)
+
 			If isCredentialValid Then
-				Dim token As String = TokenGenerator.GenerateTokenJwt(login.Username)
+				Dim token As String = TokenGenerator.GenerateTokenJwt(login.Username, cr)
 				Return Ok(token)
 			Else
 				Return Unauthorized()
 			End If
+
+		End Function
+
+		Private Function VerificarCredenciales(login As LoginRequest) As Credencial
+			Dim qj As New QueryJson()
+
+			Return qj.GeneraCredencial(Username:=login.Username, Password:=login.Password)
 
 		End Function
 	End Class

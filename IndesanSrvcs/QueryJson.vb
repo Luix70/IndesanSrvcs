@@ -4,6 +4,7 @@ Imports System.IO
 Imports System.Text
 Imports System.Configuration
 Imports System.Globalization
+Imports IndesanSrvcs.Models
 Public Class QueryJson
 
 	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
@@ -305,7 +306,7 @@ Public Class QueryJson
 			Dim strCadenaConsulta As String
 		strCadenaConsulta = "SELECT Scan_docs_imgs.tipodoc, Scan_docs_imgs.codigodoc, Scan_imgs.documento, Scan_imgs.Archivo, Scan_imgs.numerador, scan_tipos_imagenes.TipoImagen, scan_tipos_imagenes.codTipo, Scan_Archivos.Nombre AS ruta
 FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan_tipos_imagenes.codTipo = Scan_imgs.tipoImagen) INNER JOIN Scan_docs_imgs ON Scan_imgs.numerador = Scan_docs_imgs.Cod_img) ON Scan_Archivos.Archivo = Scan_imgs.Archivo
-								WHERE (((Scan_docs_imgs.tipodoc)='" & parTipodoc & "') AND ((Scan_docs_imgs.codigodoc)=" & parCodigodoc & "));"
+								WHERE (((Scan_docs_imgs.tipodoc)='" & parTipodoc & "') AND ((Scan_docs_imgs.codigodoc)=" & parCodigodoc & ") AND ((Scan_imgs.Archivo)<>2));"
 
 		Dim Cons As New OleDb.OleDbConnection
 			Cons.ConnectionString = strConexion
@@ -334,98 +335,139 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Return res
 
 		End Function
-		Public Function GenerarJson2(parUsuario As String, parPassword As String) As String
+	Public Function GenerarJson2(parUsuario As String, parPassword As String) As String
 
-			Dim Json As String = ""
-			Dim culture As New CultureInfo("en-US")
-			intCurrentRow = 0
-			Dim js As JavaScriptSerializer
-			js = New JavaScriptSerializer()
-			js.MaxJsonLength = 50000000
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+		Dim js As JavaScriptSerializer
+		js = New JavaScriptSerializer()
+		js.MaxJsonLength = 50000000
 
-			Dim strCadenaConsulta As String
+		Dim strCadenaConsulta As String
 
-			strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.NombreUsuario ='" & parUsuario & "';"
-			Dim Cons As New OleDb.OleDbConnection
-			Cons.ConnectionString = strConexion
-			Cons.Open()
+		strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.NombreUsuario ='" & parUsuario & "';"
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
 
-			dt = New DataTable
+		dt = New DataTable
 
-			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
 
-				Try
-					dad.Fill(dt)
-				Catch ex As Exception
-					MsgBox(ex.Message)
-				End Try
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
 
 
-			End Using
+		End Using
 
-			Cons.Close()
-			Cons = Nothing
+		Cons.Close()
+		Cons = Nothing
 
-			Dim res As New Resultado
+		Dim res As New Resultado
 
-			If dt.Rows.Count = 0 Then
+		If dt.Rows.Count = 0 Then
+			res.consulta = "nulo"
+			res.Status = "noOK"
+			res.errorcode = "Usuario Inexistente"
+			res.FechaConsulta = Now.ToString("o", culture)
+			Json = js.Serialize(res)
+			Return Json
+
+		Else
+			If dt.Rows(0).Field(Of String)("Contraseña") <> parPassword Then
 				res.consulta = "nulo"
 				res.Status = "noOK"
-				res.errorcode = "Usuario Inexistente"
+				res.errorcode = "Contraseña errónea"
+				res.consulta = strCadenaConsulta
+
+
 				res.FechaConsulta = Now.ToString("o", culture)
+				res.totalRepresentantes = res.ObtenerRepresentantes()
 				Json = js.Serialize(res)
 				Return Json
-
 			Else
-				If dt.Rows(0).Field(Of String)("Contraseña") <> parPassword Then
-					res.consulta = "nulo"
-					res.Status = "noOK"
-					res.errorcode = "Contraseña errónea"
-					res.consulta = strCadenaConsulta
+				'Todo correcto
+				res.consulta = CadenaConsulta2("{tipoentidad:'" & dt.Rows(0).Field(Of String)("TipoEntidad") & "', AccesoCli:'" & dt.Rows(0).Field(Of String)("AccesoCli") & "', AccesoRep: '" & dt.Rows(0).Field(Of String)("AccesoRep") & "'}")
+				res.Status = "OK"
+				res.FechaConsulta = Now.ToString("o", culture)
+				res.errorcode = ""
+				'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
+				If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") And (res.consulta = "SELECT * FROM listadoOperaciones where (codrep > 0);") Then
 
+					Dim strJson As String
+					Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 
-					res.FechaConsulta = Now.ToString("o", culture)
-					res.totalRepresentantes = res.ObtenerRepresentantes()
-					Json = js.Serialize(res)
-					Return Json
-				Else
-					'Todo correcto
-					res.consulta = CadenaConsulta2("{tipoentidad:'" & dt.Rows(0).Field(Of String)("TipoEntidad") & "', AccesoCli:'" & dt.Rows(0).Field(Of String)("AccesoCli") & "', AccesoRep: '" & dt.Rows(0).Field(Of String)("AccesoRep") & "'}")
-					res.Status = "OK"
-					res.FechaConsulta = Now.ToString("o", culture)
-					res.errorcode = ""
-					'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
-					If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") And (res.consulta = "SELECT * FROM listadoOperaciones where (codrep > 0);") Then
+						' Read the stream to a string and write the string to the console.
+						strJson = sr.ReadToEnd()
 
-						Dim strJson As String
-						Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
+					End Using
 
-							' Read the stream to a string and write the string to the console.
-							strJson = sr.ReadToEnd()
+					res = js.Deserialize(Of Resultado)(strJson)
 
-						End Using
-
-						res = js.Deserialize(Of Resultado)(strJson)
-
-						If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) < 60 Then
-							Return strJson
-						Else ' file is old
-
-							Json = ConsultarDB(res.consulta)
-							Return Json
-
-						End If
-					Else 'file doesn't exists
+					If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) < 60 Then
+						Return strJson
+					Else ' file is old
 
 						Json = ConsultarDB(res.consulta)
 						Return Json
 
 					End If
+				Else 'file doesn't exists
+
+					Json = ConsultarDB(res.consulta)
+					Return Json
+
 				End If
 			End If
+		End If
 
-		End Function
-		Function ConsultarDB(sql As String) As String
+	End Function
+	Public Function GeneraCredencial(Username As String, Password As String) As Credencial
+		Dim nc As New Credencial
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Credenciales_rst.* FROM Credenciales_rst WHERE (((Credenciales_rst.Password)='" & Password & "') AND ((Credenciales_rst.email)='" & Username & "'));"
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		If cdt.Rows.Count = 1 Then
+			nc.IdCredencial = cdt.Rows(intCurrentRow).Item("IdCredencial")
+			nc.TipoEntidad = cdt.Rows(intCurrentRow).Item("TipoEntidad")
+			nc.NombreUsuario = cdt.Rows(intCurrentRow).Item("NombreUsuario")
+			nc.Password = cdt.Rows(intCurrentRow).Item("Password")
+			nc.AccesoCli = cdt.Rows(intCurrentRow).Item("AccesoCli")
+			nc.AccesoRep = cdt.Rows(intCurrentRow).Item("AccesoRep")
+			nc.Email = cdt.Rows(intCurrentRow).Item("Email")
+			nc.Idioma = cdt.Rows(intCurrentRow).Item("Idioma")
+		Else
+			nc.IdCredencial = -1
+		End If
+
+
+
+
+		Return nc
+
+	End Function
+
+
+	Function ConsultarDB(sql As String) As String
 			' hay que leerlo de nuevo
 			Dim Res = New Resultado
 			Dim json As String = ""
