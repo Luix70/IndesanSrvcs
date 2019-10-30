@@ -334,7 +334,12 @@ Public Class JData
 		Next
 		nfilename = fileName.Replace(".tif", ".pdf")
 
-		doc.Save(nfilename)
+		Try
+			doc.Save(nfilename)
+		Catch ex As Exception
+			nfilename = nfilename.Replace(".pdf", CStr(Int(Rnd(100) * 100)) & ".pdf")
+			doc.Save(nfilename)
+		End Try
 
 		doc.Close()
 

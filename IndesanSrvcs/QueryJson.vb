@@ -346,7 +346,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Dim strCadenaConsulta As String
 
-		strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.NombreUsuario ='" & parUsuario & "';"
+		strCadenaConsulta = "SELECT * FROM Credenciales_rst WHERE Credenciales_rst.Email ='" & parUsuario & "';"
 		Dim Cons As New OleDb.OleDbConnection
 		Cons.ConnectionString = strConexion
 		Cons.Open()
@@ -378,7 +378,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Return Json
 
 		Else
-			If dt.Rows(0).Field(Of String)("Contraseña") <> parPassword Then
+			If dt.Rows(0).Field(Of String)("Password") <> parPassword Then
 				res.consulta = "nulo"
 				res.Status = "noOK"
 				res.errorcode = "Contraseña errónea"
@@ -447,18 +447,18 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 		If cdt.Rows.Count = 1 Then
-			If cdt.Rows(intCurrentRow).Item("Password") = Password Then
-				nc.IdCredencial = cdt.Rows(intCurrentRow).Item("IdCredencial")
-				nc.TipoEntidad = cdt.Rows(intCurrentRow).Item("TipoEntidad")
-				nc.NombreUsuario = cdt.Rows(intCurrentRow).Item("NombreUsuario")
+			If cdt.Rows(0).Item("Password") = Password Then
+				nc.IdCredencial = cdt.Rows(0).Item("IdCredencial")
+				nc.TipoEntidad = cdt.Rows(0).Item("TipoEntidad")
+				nc.NombreUsuario = cdt.Rows(0).Item("NombreUsuario")
 				nc.Password = "OK"
-				nc.AccesoCli = cdt.Rows(intCurrentRow).Item("AccesoCli")
-				nc.AccesoRep = cdt.Rows(intCurrentRow).Item("AccesoRep")
-				nc.Email = cdt.Rows(intCurrentRow).Item("Email")
-				nc.Idioma = cdt.Rows(intCurrentRow).Item("Idioma")
+				nc.AccesoCli = cdt.Rows(0).Item("AccesoCli")
+				nc.AccesoRep = cdt.Rows(0).Item("AccesoRep")
+				nc.Email = cdt.Rows(0).Item("Email")
+				nc.Idioma = cdt.Rows(0).Item("Idioma")
 			Else
 				nc.IdCredencial = -1
-				nc.Email = cdt.Rows(intCurrentRow).Item("Email")
+				nc.Email = cdt.Rows(0).Item("Email")
 				nc.Password = "NOOK"
 			End If
 
@@ -598,16 +598,16 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 			Else
 
-				If dict("AccesoCli") = "*" And dict("AccesoRep") <> "-" Then
-					strCadenaConsulta = strCadenaConsulta & "(codrep IN (" & dict("AccesoRep") & "))"
-				End If
+			If dict("AccesoCli") = "*" And dict("AccesoRep") <> "*" Then
+				strCadenaConsulta = strCadenaConsulta & "(codrep IN (" & dict("AccesoRep") & "))"
+			End If
 
-				If dict("AccesoCli") <> "*" And dict("AccesoRep") = "-" Then
-					strCadenaConsulta = strCadenaConsulta & "(codigo = '" & dict("AccesoCli") & "')"
-				End If
+			If dict("AccesoCli") <> "*" And dict("AccesoRep") = "*" Then
+				strCadenaConsulta = strCadenaConsulta & "(codigo = '" & dict("AccesoCli") & "')"
+			End If
 
 
-				strCadenaConsulta = strCadenaConsulta & ");"
+			strCadenaConsulta = strCadenaConsulta & ");"
 
 			End If
 

@@ -3,7 +3,7 @@ Namespace Models
 	Public Class LoginRequest
 		Private newUsername As String
 		Private newPassword As String
-		Public Property Username() As String
+		Public Property username() As String
 			Get
 				Return newUsername
 			End Get
@@ -12,7 +12,7 @@ Namespace Models
 			End Set
 		End Property
 
-		Public Property Password() As String
+		Public Property password() As String
 			Get
 				Return newPassword
 			End Get

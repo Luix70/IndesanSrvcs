@@ -35,7 +35,7 @@ Namespace Controllers
 			Dim isCredentialValid As Boolean = (cr.IdCredencial <> -1)
 
 			If isCredentialValid Then
-				Dim token As String = TokenGenerator.GenerateTokenJwt(login.Username, cr)
+				Dim token As String = TokenGenerator.GenerateTokenJwt(login.username, cr)
 				Return Ok(token)
 			Else
 				Dim errorMsg As String
@@ -53,7 +53,7 @@ Namespace Controllers
 		Private Function VerificarCredenciales(login As LoginRequest) As Credencial
 			Dim qj As New QueryJson()
 
-			Return qj.GeneraCredencial(Username:=login.Username, Password:=login.Password)
+			Return qj.GeneraCredencial(Username:=login.username, Password:=login.password)
 
 		End Function
 	End Class
