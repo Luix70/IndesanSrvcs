@@ -432,7 +432,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
 
-		strConsulta = "SELECT Credenciales_rst.* FROM Credenciales_rst WHERE (((Credenciales_rst.Password)='" & Password & "') AND ((Credenciales_rst.email)='" & Username & "'));"
+		strConsulta = "SELECT Credenciales_rst.* FROM Credenciales_rst WHERE (((Credenciales_rst.email)='" & Username & "'));"
 		Cons.ConnectionString = strConexion
 		Cons.Open()
 
@@ -447,16 +447,24 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 		If cdt.Rows.Count = 1 Then
-			nc.IdCredencial = cdt.Rows(intCurrentRow).Item("IdCredencial")
-			nc.TipoEntidad = cdt.Rows(intCurrentRow).Item("TipoEntidad")
-			nc.NombreUsuario = cdt.Rows(intCurrentRow).Item("NombreUsuario")
-			nc.Password = cdt.Rows(intCurrentRow).Item("Password")
-			nc.AccesoCli = cdt.Rows(intCurrentRow).Item("AccesoCli")
-			nc.AccesoRep = cdt.Rows(intCurrentRow).Item("AccesoRep")
-			nc.Email = cdt.Rows(intCurrentRow).Item("Email")
-			nc.Idioma = cdt.Rows(intCurrentRow).Item("Idioma")
+			If cdt.Rows(intCurrentRow).Item("Password") = Password Then
+				nc.IdCredencial = cdt.Rows(intCurrentRow).Item("IdCredencial")
+				nc.TipoEntidad = cdt.Rows(intCurrentRow).Item("TipoEntidad")
+				nc.NombreUsuario = cdt.Rows(intCurrentRow).Item("NombreUsuario")
+				nc.Password = "OK"
+				nc.AccesoCli = cdt.Rows(intCurrentRow).Item("AccesoCli")
+				nc.AccesoRep = cdt.Rows(intCurrentRow).Item("AccesoRep")
+				nc.Email = cdt.Rows(intCurrentRow).Item("Email")
+				nc.Idioma = cdt.Rows(intCurrentRow).Item("Idioma")
+			Else
+				nc.IdCredencial = -1
+				nc.Email = cdt.Rows(intCurrentRow).Item("Email")
+				nc.Password = "NOOK"
+			End If
+
 		Else
 			nc.IdCredencial = -1
+			nc.Email = "NOOK"
 		End If
 
 

@@ -38,7 +38,14 @@ Namespace Controllers
 				Dim token As String = TokenGenerator.GenerateTokenJwt(login.Username, cr)
 				Return Ok(token)
 			Else
-				Return Unauthorized()
+				Dim errorMsg As String
+				If cr.Email = "NOOK" Then
+					errorMsg = "UI"
+
+				Else
+					errorMsg = "CI"
+				End If
+			Return Content(HttpStatusCode.Unauthorized, errorMsg)
 			End If
 
 		End Function
