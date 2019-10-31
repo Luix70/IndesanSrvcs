@@ -137,9 +137,9 @@
     <Import Include="System.Web.UI.HtmlControls" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="api\customers\JSON\_notocar.txt" />
     <Content Include="Global.asax" />
     <Content Include="JData.asmx" />
-    <Content Include="JSON\dummy.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

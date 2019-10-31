@@ -17,7 +17,49 @@ Public Class QueryJson
 		Public totalRepresentantes As Integer
 		Public Status As String
 		Public errorcode As String
+		Public Sub FiltrarRepresentante(repre As Long)
 
+			Return
+			'TO DO: implementar el filtro
+
+			Dim i As Integer
+			Dim rep As Representante
+			For i = 1 To representantes.Count
+				rep = representantes.Item(i)
+				If rep.codrep <> repre Then
+					representantes.Remove(i)
+				End If
+			Next
+
+
+		End Sub
+		Public Sub FiltrarCliente(codcl As String)
+			Return
+			'TO DO: implementar el filtro
+
+			Dim i As Integer
+			Dim j As Integer
+			Dim rep As Representante
+			Dim cli As Cliente
+
+			For i = 1 To representantes.Count
+				rep = representantes(i)
+				For j = 1 To rep.Clientes.Count
+					cli = rep.Clientes(j)
+					If cli.codigo <> codcl Then
+						rep.Clientes.Remove(j)
+					End If
+				Next
+			Next
+
+			For i = 0 To representantes.Count - 1
+				rep = representantes(i)
+				If rep.Clientes.Count = 1 Then
+					representantes.Remove(i)
+				End If
+			Next
+
+		End Sub
 		Function ObtenerRepresentantes() As Integer
 
 			'Poblar la coleccion de representantes y dar valor al totalRepresentantes
@@ -115,37 +157,46 @@ Public Class QueryJson
 	Private Class Representante
 			Public codrep As Long
 			Public nombre As String
-			Public clientes As New Collection
-			Public totalClientes As Integer
+		Private _clientes As New Collection
+		Public totalClientes As Integer
 
-			Function obtenerClientes(codRepActual As Integer) As Integer
+		Public Property Clientes As Collection
+			Get
+				Return _clientes
+			End Get
+			Set(value As Collection)
+				_clientes = value
+			End Set
+		End Property
 
-				Dim n_clientes As Integer = 0
-				Dim objCliente As Cliente
+		Function obtenerClientes(codRepActual As Integer) As Integer
 
-				While intCurrentRow < dt.Rows.Count AndAlso (dt.Rows(intCurrentRow).Item("codrep") = codRepActual Or codRepActual = 0)
+			Dim n_clientes As Integer = 0
+			Dim objCliente As Cliente
 
-					n_clientes += 1
-					objCliente = New Cliente
+			While intCurrentRow < dt.Rows.Count AndAlso (dt.Rows(intCurrentRow).Item("codrep") = codRepActual Or codRepActual = 0)
 
-					objCliente.codigo = dt.Rows(intCurrentRow).Item("codigo")
-					objCliente.rzs = dt.Rows(intCurrentRow).Item("rzs")
-					objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
+				n_clientes += 1
+				objCliente = New Cliente
 
-					objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
+				objCliente.codigo = dt.Rows(intCurrentRow).Item("codigo")
+				objCliente.rzs = dt.Rows(intCurrentRow).Item("rzs")
+				objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
 
-					clientes.Add(objCliente, objCliente.codigo.ToString)
+				objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
+
+				Clientes.Add(objCliente, objCliente.codigo.ToString)
 
 
-				End While
+			End While
 
-				' devolvemos el cursor al ultimo registro del cliente o al ultimo de la tabla
+			' devolvemos el cursor al ultimo registro del cliente o al ultimo de la tabla
 
-				Return n_clientes
+			Return n_clientes
 
-			End Function
+		End Function
 
-		End Class
+	End Class
 
 		Private Class Cliente
 			Public codigo As String
@@ -426,6 +477,70 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		End If
 
 	End Function
+	Public Function ObtenerDocs(repre As String, cliente As String, tipoEntidad As String) As String
+
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+
+		Dim js As New JavaScriptSerializer()
+		js.MaxJsonLength = 50000000
+
+
+
+		Dim res As New Resultado
+		res.consulta = "SELECT * FROM listadoOperaciones;"
+		'res.consulta = CadenaConsulta2("{tipoentidad:'" & tipoEntidad & "', AccesoCli:'" & cliente & "', AccesoRep: '" & repre & "'}")
+		res.Status = "OK"
+		res.FechaConsulta = Now.ToString("o", culture)
+		res.errorcode = ""
+		'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
+		If Not File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
+
+			Json = ConsultarDB(res.consulta)
+
+		End If
+
+		Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
+
+			' Read the stream to a string and write the string to the console.
+			Json = sr.ReadToEnd()
+
+		End Using
+
+		res = js.Deserialize(Of Resultado)(Json)
+
+		If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) > 60 Then
+
+			Json = ConsultarDB(res.consulta)
+
+
+		End If
+
+		If repre = "*" Then
+
+			Return Json
+		Else
+
+			If IsNumeric(repre) Then
+
+				res.FiltrarRepresentante(repre)
+				Return js.Serialize(res)
+
+			Else
+				If cliente <> "*" Then
+
+					res.FiltrarCliente(cliente)
+					Return js.Serialize(res)
+
+				End If
+			End If
+
+
+
+		End If
+
+	End Function
 	Public Function GeneraCredencial(Username As String, Password As String) As Credencial
 		Dim nc As New Credencial
 		Dim strConsulta As String
@@ -508,22 +623,22 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
 			json = js.Serialize(Res)
 
-			If sql = "SELECT * FROM listadoOperaciones where (codrep > 0);" Then
+		If sql = "SELECT * FROM listadoOperaciones;" Then
 
-				'Aprovechamos que hacemos una consulta completa y la guardamos
+			'Aprovechamos que hacemos una consulta completa y la guardamos
 
-				If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
-					File.Delete(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
-				End If
-				Dim fs As FileStream = File.Create(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
-
-				AddText(fs, json)
-
-				fs.Close()
-
+			If File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
+				File.Delete(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 			End If
+			Dim fs As FileStream = File.Create(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 
-			dt = Nothing
+			AddText(fs, json)
+
+			fs.Close()
+
+		End If
+
+		dt = Nothing
 
 			Return json
 

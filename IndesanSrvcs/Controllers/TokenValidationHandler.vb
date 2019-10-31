@@ -1,6 +1,7 @@
 ﻿Imports System
 Imports System.Collections.Generic
 Imports System.Configuration
+Imports System.IdentityModel.Tokens.Jwt
 Imports System.Linq
 Imports System.Net
 Imports System.Net.Http
@@ -48,7 +49,7 @@ Namespace Controllers
 				Dim audienceToken = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
 				Dim issuerToken = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
 				Dim securityKey = New SymmetricSecurityKey(System.Text.Encoding.Default.GetBytes(secretKey))
-				Dim securityToken As SecurityToken = Nothing
+				Dim securityToken As JwtSecurityToken = Nothing
 
 				Dim tokenHandler As New System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler()
 				Dim validationParameters As New TokenValidationParameters() With {
