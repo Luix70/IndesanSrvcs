@@ -1,5 +1,6 @@
 ﻿Imports System.Web.Http
 
+
 Namespace Controllers
 	<Authorize>
 	<RoutePrefix("api/customers")>
@@ -12,7 +13,6 @@ Namespace Controllers
 			Dim customerFake = "customer-fake"
 			Return Ok(customerFake)
 		End Function
-
 
 		<HttpGet>
 		<Route("GetAll")>

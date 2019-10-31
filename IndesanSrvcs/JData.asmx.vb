@@ -65,7 +65,7 @@ Public Class JData
 		Json = js.Serialize(resultados)
 
 		HttpContext.Current.Response.Clear()
-		HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+		'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 		HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 		HttpContext.Current.Response.Write(Json)
 
@@ -92,7 +92,7 @@ Public Class JData
 			Json = "{error: 'no se han suministrado los parámetros necesarios'}"
 
 			HttpContext.Current.Response.Clear()
-			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 			HttpContext.Current.Response.Write(Json)
 		Else
@@ -106,7 +106,7 @@ Public Class JData
 			Json = js.Serialize(resultados)
 
 			HttpContext.Current.Response.Clear()
-			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 			HttpContext.Current.Response.Write(Json)
 
@@ -136,7 +136,7 @@ Public Class JData
 			Json = "{error: " + filePath + "}"
 
 			HttpContext.Current.Response.Clear()
-			HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+			'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 			HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 			HttpContext.Current.Response.Write(Json)
 		Else
@@ -158,7 +158,7 @@ Public Class JData
 			With HttpContext.Current.Response
 				.Clear()
 				.AddHeader("Content-Disposition", "attachment;filename=" + nombreDocumento)
-				.AppendHeader("Access-Control-Allow-Origin", "*")
+				'.AppendHeader("Access-Control-Allow-Origin", "*")
 				.BinaryWrite(System.IO.File.ReadAllBytes(filePath))
 
 				.Flush()
@@ -201,7 +201,7 @@ Public Class JData
 		resultados = qj.GenerarJson2(parUser, parPassWord)
 
 		HttpContext.Current.Response.Clear()
-		HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+		'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 		' HttpContext.Current.Response.AppendHeader("Content-Encoding", "identity")
 		HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 		HttpContext.Current.Response.Write(resultados)
@@ -216,7 +216,7 @@ Public Class JData
 		Dim js As New JavaScriptSerializer
 		Dim saludo As New atomObject(StrResponseNew)
 		HttpContext.Current.Response.Clear()
-		HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+		'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 		' HttpContext.Current.Response.AppendHeader("Content-Encoding", "identity")
 		HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 		HttpContext.Current.Response.Write(js.Serialize(saludo))
@@ -246,7 +246,7 @@ Public Class JData
 		Dim js As New JavaScriptSerializer
 		Dim saludo As New atomObject(strRespuesta)
 		HttpContext.Current.Response.Clear()
-		HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
+		'HttpContext.Current.Response.AppendHeader("Access-Control-Allow-Origin", "*")
 		' HttpContext.Current.Response.AppendHeader("Content-Encoding", "identity")
 		HttpContext.Current.Response.ContentType = "application/json;charset=UTF-8"
 		HttpContext.Current.Response.Write(js.Serialize(saludo))

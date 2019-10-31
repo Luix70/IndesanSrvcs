@@ -7,8 +7,8 @@ Imports IndesanSrvcs.Controllers
 Public Module WebApiConfig
 	Public Sub Register(ByVal config As HttpConfiguration)
 		' Configuración y servicios de API web
-		Dim corsAttr As New EnableCorsAttribute("*", "*", "*")
-		config.EnableCors(corsAttr)
+		'Dim corsAttr As New EnableCorsAttribute("*", "*", "*")
+		'config.EnableCors(corsAttr)
 		' Rutas de API web
 		config.MapHttpAttributeRoutes()
 		config.MessageHandlers.Add(New TokenValidationHandler())

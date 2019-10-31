@@ -45,7 +45,7 @@ Namespace Controllers
 				Else
 					errorMsg = "CI"
 				End If
-			Return Content(HttpStatusCode.Unauthorized, errorMsg)
+				Return Content(HttpStatusCode.Unauthorized, errorMsg)
 			End If
 
 		End Function
