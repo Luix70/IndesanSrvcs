@@ -5,6 +5,10 @@ Imports System.Text
 Imports System.Configuration
 Imports System.Globalization
 Imports IndesanSrvcs.Models
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
+Imports System.Threading
+
 Public Class QueryJson
 
 	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
@@ -19,14 +23,16 @@ Public Class QueryJson
 		Public errorcode As String
 		Public Sub FiltrarRepresentante(repre As Long)
 
-			Return
+			'Return
 			'TO DO: implementar el filtro
 
-			Dim i As Integer
-			Dim rep As Representante
-			For i = 1 To representantes.Count
-				rep = representantes.Item(i)
-				If rep.codrep <> repre Then
+
+			Dim rep As Object
+
+			For i = representantes.Count To 1 Step -1
+				rep = representantes(i)
+
+				If rep("codrep") <> repre Then
 					representantes.Remove(i)
 				End If
 			Next
@@ -34,30 +40,22 @@ Public Class QueryJson
 
 		End Sub
 		Public Sub FiltrarCliente(codcl As String)
-			Return
-			'TO DO: implementar el filtro
+
 
 			Dim i As Integer
-			Dim j As Integer
-			Dim rep As Representante
-			Dim cli As Cliente
 
-			For i = 1 To representantes.Count
-				rep = representantes(i)
-				For j = 1 To rep.Clientes.Count
-					cli = rep.Clientes(j)
-					If cli.codigo <> codcl Then
-						rep.Clientes.Remove(j)
+			Dim j As Integer
+
+
+
+			For i = representantes.Count To 1 Step -1
+				For j = representantes(i)("Clientes").Length - 1 To 0
+					If representantes(i)("Clientes")(j)("codigo") <> codcl Then
+						representantes(i)("Clientes")(j).Remove(j)
 					End If
 				Next
 			Next
 
-			For i = 0 To representantes.Count - 1
-				rep = representantes(i)
-				If rep.Clientes.Count = 1 Then
-					representantes.Remove(i)
-				End If
-			Next
 
 		End Sub
 		Function ObtenerRepresentantes() As Integer
@@ -155,8 +153,8 @@ Public Class QueryJson
 		Public codTipo As Long
 	End Class
 	Private Class Representante
-			Public codrep As Long
-			Public nombre As String
+		Public codrep As Long
+		Public nombre As String
 		Private _clientes As New Collection
 		Public totalClientes As Integer
 
@@ -168,6 +166,7 @@ Public Class QueryJson
 				_clientes = value
 			End Set
 		End Property
+
 
 		Function obtenerClientes(codRepActual As Integer) As Integer
 
@@ -198,179 +197,179 @@ Public Class QueryJson
 
 	End Class
 
-		Private Class Cliente
-			Public codigo As String
-			Public rzs As String
-			Public poblacion As String
-			Public documentos As New Collection
-			Public totalDocumentos As Integer
+	Private Class Cliente
+		Public codigo As String
+		Public rzs As String
+		Public poblacion As String
+		Public documentos As New Collection
+		Public totalDocumentos As Integer
 
-			Function obtenerDocumentos(codigo As String) As Integer
+		Function obtenerDocumentos(codigo As String) As Integer
 
-				Dim n_documentos As Integer = 0
-				Dim objDoc As Documento
+			Dim n_documentos As Integer = 0
+			Dim objDoc As Documento
 
-				While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("codigo") = codigo
+			While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("codigo") = codigo
 
-					objDoc = New Documento
-					n_documentos += 1
+				objDoc = New Documento
+				n_documentos += 1
 
-					objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
-					objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
-					objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1").ToString
-					objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
+				objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
+				objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
+				objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1").ToString
+				objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
 
-					If IsDBNull(dt.Rows(intCurrentRow).Item("referencia")) Then
-						objDoc.referencia = ""
-					Else
-						objDoc.referencia = dt.Rows(intCurrentRow).Item("referencia")
-					End If
+				If IsDBNull(dt.Rows(intCurrentRow).Item("referencia")) Then
+					objDoc.referencia = ""
+				Else
+					objDoc.referencia = dt.Rows(intCurrentRow).Item("referencia")
+				End If
 
-					objDoc.totalLineas = objDoc.obtenerLineas(objDoc.tipodoc, objDoc.codigodoc)
+				objDoc.totalLineas = objDoc.obtenerLineas(objDoc.tipodoc, objDoc.codigodoc)
 
-					documentos.Add(objDoc, objDoc.tipodoc & objDoc.codigodoc.ToString)
-
-
-
-				End While
-
-				Return n_documentos
-
-			End Function
-
-		End Class
-
-		Private Class Documento
-			Public tipodoc As String
-			Public codigodoc As Long
-			Public fechapedido As String
-			Public Importebruto As Single
-			Public referencia As String
-			Public lineas As New Collection
-			Public totalLineas As Integer
-
-			Function obtenerLineas(tipodoc As String, codigodoc As Long) As Integer
-				Dim n_lineas As Integer = 0
-				Dim objLinea As Linea
-
-				While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("tipodoc") = tipodoc AndAlso dt.Rows(intCurrentRow).Item("codigodoc") = codigodoc
-					n_lineas += 1
-					objLinea = New Linea
-
-					objLinea.linea = dt.Rows(intCurrentRow).Item("linea")
-					objLinea.coart = dt.Rows(intCurrentRow).Item("coart")
-					Try
-						If IsDBNull(dt.Rows(intCurrentRow).Item("cantidad")) Then
-							objLinea.cantidad = 0
-						Else
-							objLinea.cantidad = dt.Rows(intCurrentRow).Item("cantidad")
-						End If
-					Catch e As Exception
-						objLinea.cantidad = 0
-					End Try
-
-
-					objLinea.descripcion = dt.Rows(intCurrentRow).Item("descripcion")
-					If IsDBNull(dt.Rows(intCurrentRow).Item("ref_linea")) Then
-						objLinea.ref_linea = ""
-					Else
-						objLinea.ref_linea = dt.Rows(intCurrentRow).Item("ref_linea")
-					End If
-
-					objLinea.precio = dt.Rows(intCurrentRow).Item("precio")
-					objLinea.pedido = dt.Rows(intCurrentRow).Item("pedido")
-					objLinea.codLinea = dt.Rows(intCurrentRow).Item("codLinea")
-
-
-					lineas.Add(objLinea, n_lineas.ToString)
-
-					intCurrentRow += 1
-
-				End While
-
-				Return n_lineas
+				documentos.Add(objDoc, objDoc.tipodoc & objDoc.codigodoc.ToString)
 
 
 
-			End Function
+			End While
 
-		End Class
-		Private Class Linea
-			Public linea As Integer
-			Public coart As String
-			Public cantidad As Single
-			Public descripcion As String
-			Public ref_linea As String
-			Public precio As Single
-			Public pedido As String
-			Public codLinea As String
-		End Class
-
-		Public Function GenerarJson(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As Object
-
-
-
-			dt = New DataTable
-			intCurrentRow = 0
-
-
-
-			Dim strCadenaConsulta As String
-			strCadenaConsulta = CadenaConsulta(parCodRep, parCodCli, parTipodoc, parCodigodoc)
-
-			Dim Cons As New OleDb.OleDbConnection
-			Cons.ConnectionString = strConexion
-			Cons.Open()
-
-			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
-
-				dad.Fill(dt)
-
-			End Using
-
-			Cons.Close()
-			Cons = Nothing
-
-			Dim res As New Resultado
-			res.consulta = strCadenaConsulta
-
-			Dim culture As New CultureInfo("en-US")
-			res.FechaConsulta = Now.ToString("o", culture)
-			res.totalRepresentantes = res.ObtenerRepresentantes()
-
-
-			dt = Nothing
-
-
-			Return res
+			Return n_documentos
 
 		End Function
-		Public Function GenerarScanJson(parTipodoc As String, parCodigodoc As String) As Object
+
+	End Class
+
+	Private Class Documento
+		Public tipodoc As String
+		Public codigodoc As Long
+		Public fechapedido As String
+		Public Importebruto As Single
+		Public referencia As String
+		Public lineas As New Collection
+		Public totalLineas As Integer
+
+		Function obtenerLineas(tipodoc As String, codigodoc As Long) As Integer
+			Dim n_lineas As Integer = 0
+			Dim objLinea As Linea
+
+			While intCurrentRow < dt.Rows.Count AndAlso dt.Rows(intCurrentRow).Item("tipodoc") = tipodoc AndAlso dt.Rows(intCurrentRow).Item("codigodoc") = codigodoc
+				n_lineas += 1
+				objLinea = New Linea
+
+				objLinea.linea = dt.Rows(intCurrentRow).Item("linea")
+				objLinea.coart = dt.Rows(intCurrentRow).Item("coart")
+				Try
+					If IsDBNull(dt.Rows(intCurrentRow).Item("cantidad")) Then
+						objLinea.cantidad = 0
+					Else
+						objLinea.cantidad = dt.Rows(intCurrentRow).Item("cantidad")
+					End If
+				Catch e As Exception
+					objLinea.cantidad = 0
+				End Try
+
+
+				objLinea.descripcion = dt.Rows(intCurrentRow).Item("descripcion")
+				If IsDBNull(dt.Rows(intCurrentRow).Item("ref_linea")) Then
+					objLinea.ref_linea = ""
+				Else
+					objLinea.ref_linea = dt.Rows(intCurrentRow).Item("ref_linea")
+				End If
+
+				objLinea.precio = dt.Rows(intCurrentRow).Item("precio")
+				objLinea.pedido = dt.Rows(intCurrentRow).Item("pedido")
+				objLinea.codLinea = dt.Rows(intCurrentRow).Item("codLinea")
+
+
+				lineas.Add(objLinea, n_lineas.ToString)
+
+				intCurrentRow += 1
+
+			End While
+
+			Return n_lineas
 
 
 
-			dt = New DataTable
-			intCurrentRow = 0
+		End Function
+
+	End Class
+	Private Class Linea
+		Public linea As Integer
+		Public coart As String
+		Public cantidad As Single
+		Public descripcion As String
+		Public ref_linea As String
+		Public precio As Single
+		Public pedido As String
+		Public codLinea As String
+	End Class
+
+	Public Function GenerarJson(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As Object
 
 
 
-			Dim strCadenaConsulta As String
+		dt = New DataTable
+		intCurrentRow = 0
+
+
+
+		Dim strCadenaConsulta As String
+		strCadenaConsulta = CadenaConsulta(parCodRep, parCodCli, parTipodoc, parCodigodoc)
+
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			dad.Fill(dt)
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+		Dim res As New Resultado
+		res.consulta = strCadenaConsulta
+
+		Dim culture As New CultureInfo("en-US")
+		res.FechaConsulta = Now.ToString("o", culture)
+		res.totalRepresentantes = res.ObtenerRepresentantes()
+
+
+		dt = Nothing
+
+
+		Return res
+
+	End Function
+	Public Function GenerarScanJson(parTipodoc As String, parCodigodoc As String) As Object
+
+
+
+		dt = New DataTable
+		intCurrentRow = 0
+
+
+
+		Dim strCadenaConsulta As String
 		strCadenaConsulta = "SELECT Scan_docs_imgs.tipodoc, Scan_docs_imgs.codigodoc, Scan_imgs.documento, Scan_imgs.Archivo, Scan_imgs.numerador, scan_tipos_imagenes.TipoImagen, scan_tipos_imagenes.codTipo, Scan_Archivos.Nombre AS ruta
 FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan_tipos_imagenes.codTipo = Scan_imgs.tipoImagen) INNER JOIN Scan_docs_imgs ON Scan_imgs.numerador = Scan_docs_imgs.Cod_img) ON Scan_Archivos.Archivo = Scan_imgs.Archivo
 								WHERE (((Scan_docs_imgs.tipodoc)='" & parTipodoc & "') AND ((Scan_docs_imgs.codigodoc)=" & parCodigodoc & ") AND ((Scan_imgs.Archivo)<>2));"
 
 		Dim Cons As New OleDb.OleDbConnection
-			Cons.ConnectionString = strConexion
-			Cons.Open()
+		Cons.ConnectionString = strConexion
+		Cons.Open()
 
-			Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
 
-				dad.Fill(dt)
+			dad.Fill(dt)
 
-			End Using
+		End Using
 
-			Cons.Close()
-			Cons = Nothing
+		Cons.Close()
+		Cons = Nothing
 
 		Dim res As New Scans
 		res.consulta = strCadenaConsulta
@@ -383,9 +382,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		dt = Nothing
 
 
-			Return res
+		Return res
 
-		End Function
+	End Function
 	Public Function GenerarJson2(parUsuario As String, parPassword As String) As String
 
 		Dim Json As String = ""
@@ -480,58 +479,94 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 	Public Function ObtenerDocs(repre As String, cliente As String, tipoEntidad As String) As String
 
 		Dim Json As String = ""
+		Dim Job As New JObject
+
 		Dim culture As New CultureInfo("en-US")
 		intCurrentRow = 0
 
-		Dim js As New JavaScriptSerializer()
-		js.MaxJsonLength = 50000000
+		'Dim js As New JavaScriptSerializer()
+		'js.MaxJsonLength = 50000000
 
 
 
 		Dim res As New Resultado
 		res.consulta = "SELECT * FROM listadoOperaciones;"
-		'res.consulta = CadenaConsulta2("{tipoentidad:'" & tipoEntidad & "', AccesoCli:'" & cliente & "', AccesoRep: '" & repre & "'}")
 		res.Status = "OK"
 		res.FechaConsulta = Now.ToString("o", culture)
 		res.errorcode = ""
 		'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
 		If Not File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
 
-			Json = ConsultarDB(res.consulta)
+			
+			Job = JObject.Parse(ConsultarDB(res.consulta))
 
 		End If
 
 		Using sr As New StreamReader(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json")
 
 			' Read the stream to a string and write the string to the console.
-			Json = sr.ReadToEnd()
+
+			Job = JObject.Parse(sr.ReadToEnd())
 
 		End Using
 
-		res = js.Deserialize(Of Resultado)(Json)
+		'res = JsonConvert.DeserializeObject(Of Resultado)(Json)
 
-		If DateDiff(DateInterval.Minute, Convert.ToDateTime(res.FechaConsulta), Date.Now()) > 60 Then
+		If DateDiff(DateInterval.Minute, Convert.ToDateTime(Job("FechaConsulta")), Date.Now()) > 60 Then
 
-			Json = ConsultarDB(res.consulta)
 
+			Job = JObject.Parse(ConsultarDB(res.consulta))
 
 		End If
 
-		If repre = "*" Then
 
-			Return Json
+
+		If repre = "*" And cliente = "*" Then
+
+			Return Job.ToString
 		Else
 
 			If IsNumeric(repre) Then
+				Dim JRep As JArray = Job("representantes")
+				Dim nJrep As New JArray
 
-				res.FiltrarRepresentante(repre)
-				Return js.Serialize(res)
+				For Each r As JObject In JRep
+					If r("codrep") = repre Then
+						nJrep.Add(r)
+						Exit For
+					End If
+				Next
+				Job("representantes") = nJrep
+
+				Job("totalRepresentantes") = 1
+				Return Job.ToString
 
 			Else
 				If cliente <> "*" Then
+					Dim JRep As JArray = Job("representantes")
+					Dim nJrep As New JArray
+					Dim JCli As New JArray
+					Dim nJCli As New JArray
+					For Each r As JObject In JRep
+						JCli = r("Clientes")
+						For Each c As JObject In JCli
+							If c("codigo") = cliente Then
+								nJCli.Add(c)
+								r("Clientes") = nJCli
+								r("totalClientes") = 1
+								nJrep.Add(r)
+								Job("representantes") = nJrep
+								Job("totalRepresentantes") = 1
+								Return Job.ToString
 
-					res.FiltrarCliente(cliente)
-					Return js.Serialize(res)
+							End If
+						Next
+					Next
+
+
+					Job("representantes") = nJrep 'Por si está vacio
+
+					Return Job.ToString
 
 				End If
 			End If
@@ -591,37 +626,38 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	Function ConsultarDB(sql As String) As String
-			' hay que leerlo de nuevo
-			Dim Res = New Resultado
-			Dim json As String = ""
-			Dim js As New JavaScriptSerializer()
-			js.MaxJsonLength = 50000000
+		' hay que leerlo de nuevo
+		Dim Res = New Resultado
+		Dim json As String = ""
+		dt = New DataTable
+		'Consultar de nuevo para llenar dt
+		Dim Cons2 As New OleDb.OleDbConnection
+		Cons2.ConnectionString = strConexion
+		Cons2.Open()
+		Using dad As New OleDb.OleDbDataAdapter(sql, Cons2)
 
-			dt = New DataTable
-			'Consultar de nuevo para llenar dt
-			Dim Cons2 As New OleDb.OleDbConnection
-			Cons2.ConnectionString = strConexion
-			Cons2.Open()
-			Using dad As New OleDb.OleDbDataAdapter(sql, Cons2)
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
 
-				Try
-					dad.Fill(dt)
-				Catch ex As Exception
-					MsgBox(ex.Message)
-				End Try
+		End Using
 
-			End Using
-
-			Cons2.Close()
-			Cons2 = Nothing
+		Cons2.Close()
+		Cons2 = Nothing
 
 
-			Res.Status = "OK"
-			Res.errorcode = ""
-			Res.consulta = sql
-			Res.totalRepresentantes = Res.ObtenerRepresentantes()
-			Res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
-			json = js.Serialize(Res)
+		Res.Status = "OK"
+		Res.errorcode = ""
+		Res.consulta = sql
+		Res.totalRepresentantes = Res.ObtenerRepresentantes()
+		Dim originalCulture As CultureInfo = Thread.CurrentThread.CurrentCulture
+		' Change culture to en-US.
+		Thread.CurrentThread.CurrentCulture = New CultureInfo("en-US")
+		Res.FechaConsulta = Now.ToShortDateString & " " & Now.ToShortTimeString
+		Thread.CurrentThread.CurrentCulture = New CultureInfo("es-ES")
+		json = JsonConvert.SerializeObject(Res)
 
 		If sql = "SELECT * FROM listadoOperaciones;" Then
 
@@ -640,78 +676,78 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		dt = Nothing
 
-			Return json
+		Return json
 
-		End Function
-		Private Shared Sub AddText(ByVal fs As FileStream, ByVal value As String)
-			Dim info As Byte() = New UTF8Encoding(True).GetBytes(value)
-			fs.Write(info, 0, info.Length)
-		End Sub
+	End Function
+	Private Shared Sub AddText(ByVal fs As FileStream, ByVal value As String)
+		Dim info As Byte() = New UTF8Encoding(True).GetBytes(value)
+		fs.Write(info, 0, info.Length)
+	End Sub
 
-		Private Function CadenaConsulta(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As String
-			Dim strCadenaConsulta As String
-			Dim strCadenaConsultaBasica As String
+	Private Function CadenaConsulta(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As String
+		Dim strCadenaConsulta As String
+		Dim strCadenaConsultaBasica As String
 
-			strCadenaConsultaBasica = "SELECT * FROM listadopedidos WHERE ("
-			strCadenaConsulta = strCadenaConsultaBasica
+		strCadenaConsultaBasica = "SELECT * FROM listadopedidos WHERE ("
+		strCadenaConsulta = strCadenaConsultaBasica
 
-			If (IsNothing(parCodRep) And IsNothing(parCodCli) And IsNothing(parTipodoc) And IsNothing(parCodigodoc) And parCodigodoc <> "0") Then
+		If (IsNothing(parCodRep) And IsNothing(parCodCli) And IsNothing(parTipodoc) And IsNothing(parCodigodoc) And parCodigodoc <> "0") Then
 
-				strCadenaConsulta = "SELECT * FROM listadopedidos"
+			strCadenaConsulta = "SELECT * FROM listadopedidos"
 
-			Else
+		Else
 
-				If Not IsNothing(parCodRep) And parCodRep <> "0" Then
-					strCadenaConsulta = strCadenaConsulta & "(codrep = " & parCodRep & ")"
-				End If
-
-				If Not IsNothing(parCodCli) Then
-					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-						strCadenaConsulta = strCadenaConsulta & " AND "
-					End If
-					strCadenaConsulta = strCadenaConsulta & "(codigo = '" & parCodCli & "')"
-				End If
-
-
-				If Not IsNothing(parTipodoc) Then
-					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-						strCadenaConsulta = strCadenaConsulta & " AND "
-					End If
-					strCadenaConsulta = strCadenaConsulta & "(tipodoc = '" & parTipodoc & "')"
-				End If
-
-				If Not IsNothing(parTipodoc) Then
-					If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
-						strCadenaConsulta = strCadenaConsulta & " AND "
-					End If
-					strCadenaConsulta = strCadenaConsulta & "(codigodoc = " & parCodigodoc & ")"
-				End If
-
-				strCadenaConsulta = strCadenaConsulta & ");"
-
+			If Not IsNothing(parCodRep) And parCodRep <> "0" Then
+				strCadenaConsulta = strCadenaConsulta & "(codrep = " & parCodRep & ")"
 			End If
 
-			Return strCadenaConsulta
-
-		End Function
-
-		Private Function CadenaConsulta2(params As String) As String
-			Dim strCadenaConsulta As String
-			Dim strCadenaConsultaBasica As String
-
-			Dim jss As New JavaScriptSerializer()
-			Dim dict As Dictionary(Of String, String) = jss.Deserialize(Of Dictionary(Of String, String))(params)
+			If Not IsNothing(parCodCli) Then
+				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+					strCadenaConsulta = strCadenaConsulta & " AND "
+				End If
+				strCadenaConsulta = strCadenaConsulta & "(codigo = '" & parCodCli & "')"
+			End If
 
 
+			If Not IsNothing(parTipodoc) Then
+				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+					strCadenaConsulta = strCadenaConsulta & " AND "
+				End If
+				strCadenaConsulta = strCadenaConsulta & "(tipodoc = '" & parTipodoc & "')"
+			End If
 
-			strCadenaConsultaBasica = "SELECT * FROM listadoOperaciones WHERE ("
-			strCadenaConsulta = strCadenaConsultaBasica
+			If Not IsNothing(parTipodoc) Then
+				If Not strCadenaConsulta.Equals(strCadenaConsultaBasica) Then
+					strCadenaConsulta = strCadenaConsulta & " AND "
+				End If
+				strCadenaConsulta = strCadenaConsulta & "(codigodoc = " & parCodigodoc & ")"
+			End If
 
-			If (dict("AccesoCli") = "*" And dict("AccesoRep") = "*") Then
+			strCadenaConsulta = strCadenaConsulta & ");"
 
-				strCadenaConsulta = "SELECT * FROM listadoOperaciones where (codrep > 0);"
+		End If
 
-			Else
+		Return strCadenaConsulta
+
+	End Function
+
+	Private Function CadenaConsulta2(params As String) As String
+		Dim strCadenaConsulta As String
+		Dim strCadenaConsultaBasica As String
+
+		Dim jss As New JavaScriptSerializer()
+		Dim dict As Dictionary(Of String, String) = jss.Deserialize(Of Dictionary(Of String, String))(params)
+
+
+
+		strCadenaConsultaBasica = "SELECT * FROM listadoOperaciones WHERE ("
+		strCadenaConsulta = strCadenaConsultaBasica
+
+		If (dict("AccesoCli") = "*" And dict("AccesoRep") = "*") Then
+
+			strCadenaConsulta = "SELECT * FROM listadoOperaciones where (codrep > 0);"
+
+		Else
 
 			If dict("AccesoCli") = "*" And dict("AccesoRep") <> "*" Then
 				strCadenaConsulta = strCadenaConsulta & "(codrep IN (" & dict("AccesoRep") & "))"
@@ -724,13 +760,13 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 			strCadenaConsulta = strCadenaConsulta & ");"
 
-			End If
+		End If
 
-			Return strCadenaConsulta
+		Return strCadenaConsulta
 
-		End Function
+	End Function
 
-	End Class
+End Class
 
 
 
