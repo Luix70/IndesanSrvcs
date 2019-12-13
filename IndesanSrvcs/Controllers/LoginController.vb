@@ -11,6 +11,18 @@ Namespace Controllers
 	<RoutePrefix("api/login")>
 	Public Class LoginController
 		Inherits ApiController
+
+		<HttpPost>
+		<Route("mensaje")>
+		Public Function mensaje(<FromBody> msg As Newtonsoft.Json.Linq.JObject) As IHttpActionResult
+			Dim qj As New QueryJson
+
+			msg.Add("status", "recibido")
+			Return Ok(qj.RegistrarMensaje(msg))
+
+
+		End Function
+
 		<HttpGet>
 		<Route("echoping")>
 		Public Function EchoPing() As IHttpActionResult

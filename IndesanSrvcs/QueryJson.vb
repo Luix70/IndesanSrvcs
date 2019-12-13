@@ -8,6 +8,7 @@ Imports IndesanSrvcs.Models
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Threading
+Imports System.Data.OleDb
 
 Public Class QueryJson
 
@@ -305,6 +306,35 @@ Public Class QueryJson
 		Public codLinea As String
 	End Class
 
+	Public Function RegistrarMensaje(msg As JObject) As JObject
+
+		Dim strCadenaConsulta As String
+
+		Dim txt As String = "Mensaje Recibido via WEB:" & vbCrLf & "============================" & vbCrLf & msg("mensaje").ToString() & vbCrLf & "============================" & vbCrLf & "Recibido de: " & msg("nombre").ToString() & vbCrLf & "email: " & msg("email").ToString() & vbCrLf & "Teléfono de: " & msg("telefono").ToString()
+		Dim dateMessage As String = Date.Now.ToShortDateString & " " & Date.Now.ToLongTimeString
+
+		strCadenaConsulta = "INSERT INTO NotasCliente ( Nota, fecha, Usuario, avisar, fecha_aviso, UsuarioAviso ) Select '" & txt & "' As Nota, '" & dateMessage & "' As fecha, 'WEB' As Usuario, True As avisar, '" & dateMessage & "' As fecha_aviso, 'Luis' As UsuarioAviso"
+
+		Try
+			Dim i As Integer
+			Dim Cons As New OleDb.OleDbConnection
+			Cons.ConnectionString = strConexion
+			Cons.Open()
+			Dim cmd As New OleDbCommand(strCadenaConsulta, Cons)
+			i = cmd.ExecuteNonQuery()
+
+			Cons.Close()
+			Cons = Nothing
+			msg.Add("registrado", Date.Now.ToShortDateString & " " & Date.Now.ToLongTimeString)
+
+
+		Catch ex As Exception
+			msg.Add("error: " & ex.ToString)
+		End Try
+
+		Return msg
+
+	End Function
 	Public Function GenerarJson(parCodRep As String, parCodCli As String, parTipodoc As String, parCodigodoc As String) As Object
 
 
@@ -497,7 +527,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		'primero vamos a ver si existe una copia en el cache reciente, para evitar llamadas a la base de datos
 		If Not File.Exists(HttpContext.Current.Server.MapPath(".") & "\JSON\result.json") Then
 
-			
+
 			Job = JObject.Parse(ConsultarDB(res.consulta))
 
 		End If
@@ -563,11 +593,11 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						Next
 					Next
 
-
 					Job("representantes") = nJrep 'Por si está vacio
 
 					Return Job.ToString
-
+				Else
+					Return "{}"
 				End If
 			End If
 
