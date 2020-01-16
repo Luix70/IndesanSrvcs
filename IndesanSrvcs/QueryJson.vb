@@ -556,19 +556,24 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Return Job.ToString
 		Else
 
-			If IsNumeric(repre) Then
+			If repre <> "*" Then
+				Dim arrRepres As Array = repre.Split(",")
+
 				Dim JRep As JArray = Job("representantes")
 				Dim nJrep As New JArray
 
 				For Each r As JObject In JRep
-					If r("codrep") = repre Then
-						nJrep.Add(r)
-						Exit For
-					End If
+					For r_index = 0 To arrRepres.Length - 1
+						If r("codrep") = arrRepres(r_index) Then
+							nJrep.Add(r)
+							Exit For
+						End If
+					Next
 				Next
+
 				Job("representantes") = nJrep
 
-				Job("totalRepresentantes") = 1
+				Job("totalRepresentantes") = arrRepres.Length
 				Return Job.ToString
 
 			Else
