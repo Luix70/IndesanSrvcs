@@ -217,8 +217,17 @@ Public Class QueryJson
 
 				objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
 				objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
-				objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1").ToString
+				objDoc.fechadoc = dt.Rows(intCurrentRow).Item("fecha1").ToString
 				objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
+
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("fecha_confirmacion")) Then
+					objDoc.fechaConfirmacion = dt.Rows(intCurrentRow).Item("fecha_confirmacion")
+
+				End If
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("emailConfirmacion")) Then
+					objDoc.confirmadoA = dt.Rows(intCurrentRow).Item("emailConfirmacion")
+
+				End If
 
 				If IsDBNull(dt.Rows(intCurrentRow).Item("referencia")) Then
 					objDoc.referencia = ""
@@ -243,11 +252,17 @@ Public Class QueryJson
 	Private Class Documento
 		Public tipodoc As String
 		Public codigodoc As Long
+		Public fechadoc As String
 		Public fechapedido As String
+		Public fechaEntrega As String
+		Public fechaConfirmacion As String
+		Public confirmadoA As String
 		Public Importebruto As Single
 		Public referencia As String
 		Public lineas As New Collection
 		Public totalLineas As Integer
+		Public primeraPintura As String
+		Public ultimoEmbalaje As String
 
 		Function obtenerLineas(tipodoc As String, codigodoc As Long) As Integer
 			Dim n_lineas As Integer = 0
@@ -259,22 +274,130 @@ Public Class QueryJson
 
 				objLinea.linea = dt.Rows(intCurrentRow).Item("linea")
 				objLinea.coart = dt.Rows(intCurrentRow).Item("coart")
+
+				objLinea.codagrupacion = dt.Rows(intCurrentRow).Item("codagrupacion")
+
+				objLinea.Bultos = Convert.ToInt64(dt.Rows(intCurrentRow).Item("Bultos"))
+
+				If IsDBNull(dt.Rows(intCurrentRow).Item("fechaped")) Then
+					objLinea.fechapedido = ""
+				Else
+					objLinea.fechapedido = dt.Rows(intCurrentRow).Item("fechaped")
+				End If
+
+				If IsDBNull(dt.Rows(intCurrentRow).Item("fecha_entrada")) Then
+					objLinea.fechapedido = ""
+				Else
+					objLinea.fechapedido = dt.Rows(intCurrentRow).Item("fecha_entrada")
+				End If
+
+				If dt.Rows(intCurrentRow).Item("codagrupacion").ToString.Contains("COLOR=") Then
+					If IsDate(dt.Rows(intCurrentRow).Item("fecha_muestra")) Then
+						objLinea.fecha_muestra = dt.Rows(intCurrentRow).Item("fecha_muestra")
+						If IsDate(primeraPintura) Then
+
+							If CDate(primeraPintura) >= CDate(objLinea.fecha_muestra) Then
+								primeraPintura = CDate(objLinea.fecha_muestra)
+							End If
+						Else
+							primeraPintura = CDate(objLinea.fecha_muestra)
+						End If
+
+					End If
+
+				End If
+
+				If objLinea.Bultos > 0 Then
+					If IsDate(dt.Rows(intCurrentRow).Item("fecha_emb")) Then
+						objLinea.fecha_emb = dt.Rows(intCurrentRow).Item("fecha_emb")
+						If IsDate(ultimoEmbalaje) Then
+							If CDate(ultimoEmbalaje) <= CDate(objLinea.fecha_emb) Then
+								ultimoEmbalaje = CDate(objLinea.fecha_emb)
+							End If
+
+						Else
+							ultimoEmbalaje = CDate(objLinea.fecha_emb)
+						End If
+
+
+					End If
+
+				End If
+
+				If IsDate(dt.Rows(intCurrentRow).Item("fechaalbaran")) Then
+					objLinea.fechaalbaran = dt.Rows(intCurrentRow).Item("fechaalbaran")
+					If IsDate(fechaEntrega) Then
+						If CDate(fechaEntrega) <= CDate(objLinea.fechaalbaran) Then
+							fechaEntrega = CDate(objLinea.fechaalbaran)
+						End If
+					Else
+						fechaEntrega = CDate(objLinea.fechaalbaran)
+					End If
+
+				End If
+
+				If IsDate(dt.Rows(intCurrentRow).Item("fechaped")) Then
+					objLinea.fechapedido = dt.Rows(intCurrentRow).Item("fechaped")
+					If IsDate(fechapedido) Then
+						If CDate(fechapedido) >= CDate(objLinea.fechapedido) Then
+							fechapedido = CDate(objLinea.fechapedido)
+						End If
+					Else
+						fechapedido = CDate(objLinea.fechapedido)
+					End If
+
+				End If
+
+
 				Try
 					If IsDBNull(dt.Rows(intCurrentRow).Item("cantidad")) Then
 						objLinea.cantidad = 0
 					Else
 						objLinea.cantidad = dt.Rows(intCurrentRow).Item("cantidad")
 					End If
+
+
+
 				Catch e As Exception
 					objLinea.cantidad = 0
 				End Try
 
+				Try
+					objLinea.fecha_entrega_agencia = dt.Rows(intCurrentRow).Item("fecha_entrega_agencia")
+
+				Catch ex As Exception
+
+				End Try
+
+				Try
+
+					objLinea.fecha_entrada = dt.Rows(intCurrentRow).Item("fecha_entrada")
+
+				Catch ex As Exception
+
+				End Try
+
+
+				Try
+
+					objLinea.albaran = dt.Rows(intCurrentRow).Item("albaran")
+				Catch ex As Exception
+
+				End Try
+
 
 				objLinea.descripcion = dt.Rows(intCurrentRow).Item("descripcion")
+
 				If IsDBNull(dt.Rows(intCurrentRow).Item("ref_linea")) Then
 					objLinea.ref_linea = ""
 				Else
 					objLinea.ref_linea = dt.Rows(intCurrentRow).Item("ref_linea")
+				End If
+
+				If IsDBNull(dt.Rows(intCurrentRow).Item("referencia2")) Then
+					objLinea.referencia = ""
+				Else
+					objLinea.referencia = dt.Rows(intCurrentRow).Item("referencia2")
 				End If
 
 				objLinea.precio = dt.Rows(intCurrentRow).Item("precio")
@@ -298,12 +421,23 @@ Public Class QueryJson
 	Private Class Linea
 		Public linea As Integer
 		Public coart As String
+		Public codagrupacion As String
 		Public cantidad As Single
 		Public descripcion As String
 		Public ref_linea As String
 		Public precio As Single
 		Public pedido As String
+		Public albaran As String
 		Public codLinea As String
+		Public fechapedido As String
+		Public referencia As String
+		Public fecha_muestra As String
+		Public fecha_emb As String
+		Public fecha_entrega_agencia As String
+		Public fecha_entrada As String
+		Public fechaalbaran As String
+		Public Bultos As Long
+
 	End Class
 
 	Public Function RegistrarMensaje(msg As JObject) As JObject
