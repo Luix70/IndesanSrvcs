@@ -181,6 +181,12 @@ Public Class QueryJson
 
 				objCliente.codigo = dt.Rows(intCurrentRow).Item("codigo")
 				objCliente.rzs = dt.Rows(intCurrentRow).Item("rzs")
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("nomComercial")) Then
+					objCliente.nomComercial = dt.Rows(intCurrentRow).Item("nomComercial")
+				Else
+					objCliente.nomComercial = ""
+				End If
+
 				objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
 
 				objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
@@ -201,6 +207,7 @@ Public Class QueryJson
 	Private Class Cliente
 		Public codigo As String
 		Public rzs As String
+		Public nomComercial As String
 		Public poblacion As String
 		Public documentos As New Collection
 		Public totalDocumentos As Integer
@@ -218,8 +225,14 @@ Public Class QueryJson
 				objDoc.tipodoc = dt.Rows(intCurrentRow).Item("tipodoc")
 				objDoc.codigodoc = dt.Rows(intCurrentRow).Item("codigodoc")
 				objDoc.fechadoc = dt.Rows(intCurrentRow).Item("fecha1").ToString
+				objDoc.fecha2 = dt.Rows(intCurrentRow).Item("fecha2").ToString
 				objDoc.Importebruto = dt.Rows(intCurrentRow).Item("Bruto")
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("FECHAPEDIDO")) Then
+					objDoc.fechapedido = dt.Rows(intCurrentRow).Item("FECHAPEDIDO")
+				Else
+					objDoc.fechapedido = dt.Rows(intCurrentRow).Item("fecha1")
 
+				End If
 				If Not IsDBNull(dt.Rows(intCurrentRow).Item("fecha_confirmacion")) Then
 					objDoc.fechaConfirmacion = dt.Rows(intCurrentRow).Item("fecha_confirmacion")
 
@@ -253,6 +266,7 @@ Public Class QueryJson
 		Public tipodoc As String
 		Public codigodoc As Long
 		Public fechadoc As String
+		Public fecha2 As String
 		Public fechapedido As String
 		Public fechaEntrega As String
 		Public fechaConfirmacion As String
@@ -318,8 +332,8 @@ Public Class QueryJson
 						Else
 							ultimoEmbalaje = CDate(objLinea.fecha_emb)
 						End If
-
-
+					Else
+						ultimoEmbalaje = "31/12/2100"
 					End If
 
 				End If
@@ -338,13 +352,13 @@ Public Class QueryJson
 
 				If IsDate(dt.Rows(intCurrentRow).Item("fechaped")) Then
 					objLinea.fechapedido = dt.Rows(intCurrentRow).Item("fechaped")
-					If IsDate(fechapedido) Then
-						If CDate(fechapedido) >= CDate(objLinea.fechapedido) Then
-							fechapedido = CDate(objLinea.fechapedido)
-						End If
-					Else
-						fechapedido = CDate(objLinea.fechapedido)
-					End If
+					'	If IsDate(fechapedido) Then
+					'		If CDate(fechapedido) >= CDate(objLinea.fechapedido) Then
+					'			fechapedido = CDate(objLinea.fechapedido)
+					'		End If
+					'	Else
+					'		fechapedido = CDate(objLinea.fechapedido)
+					'	End If
 
 				End If
 
@@ -447,7 +461,7 @@ Public Class QueryJson
 		Dim txt As String = "Mensaje Recibido via WEB:" & vbCrLf & "============================" & vbCrLf & msg("mensaje").ToString() & vbCrLf & "============================" & vbCrLf & "Recibido de: " & msg("nombre").ToString() & vbCrLf & "email: " & msg("email").ToString() & vbCrLf & "Teléfono de: " & msg("telefono").ToString()
 		Dim dateMessage As String = Date.Now.ToShortDateString & " " & Date.Now.ToLongTimeString
 
-		strCadenaConsulta = "INSERT INTO NotasCliente ( Nota, fecha, Usuario, avisar, fecha_aviso, UsuarioAviso ) Select '" & txt & "' As Nota, '" & dateMessage & "' As fecha, 'WEB' As Usuario, True As avisar, '" & dateMessage & "' As fecha_aviso, 'Luis' As UsuarioAviso"
+		strCadenaConsulta = "INSERT INTO NotasCliente ( Nota, fecha, Usuario, avisar, fecha_aviso, UsuarioAviso ) Select '" & txt & "' As Nota, '" & dateMessage & "' As fecha, 'WEB' As Usuario, True As avisar, '" & dateMessage & "' As fecha_aviso, 'Irene' As UsuarioAviso"
 
 		Try
 			Dim i As Integer
@@ -556,7 +570,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		intCurrentRow = 0
 		Dim js As JavaScriptSerializer
 		js = New JavaScriptSerializer()
-		js.MaxJsonLength = 50000000
+		js.MaxJsonLength = 100000000
 
 		Dim strCadenaConsulta As String
 
@@ -792,7 +806,43 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Return nc
 
 	End Function
+	Public Function VerificarCandidato(Username As String, Cif As String, Password As String) As String
 
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "'));"
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		If cdt.Rows.Count = 1 Then
+			If cdt.Rows(0).Item("email") = Username Then
+
+				Return "OK"
+			Else
+				Return "email_invalido"
+			End If
+
+		Else
+			Return "Usuario_desconocido"
+		End If
+
+
+
+
+
+	End Function
 
 	Function ConsultarDB(sql As String) As String
 		' hay que leerlo de nuevo

@@ -21,6 +21,35 @@ Namespace Models
 			End Set
 		End Property
 	End Class
+	Public Class RegisterRequest
+		Private newUsername As String
+		Private newPassword As String
+		Private newCif As String
+		Public Property username() As String
+			Get
+				Return newUsername
+			End Get
+			Set(ByVal value As String)
+				newUsername = value
+			End Set
+		End Property
+		Public Property cif() As String
+			Get
+				Return newCif
+			End Get
+			Set(ByVal value As String)
+				newCif = value
+			End Set
+		End Property
+		Public Property password() As String
+			Get
+				Return newPassword
+			End Get
+			Set(ByVal value As String)
+				newPassword = value
+			End Set
+		End Property
+	End Class
 
 	Public Class Credencial
 		Private IdCredencial_ As Long

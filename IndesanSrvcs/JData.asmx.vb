@@ -44,7 +44,7 @@ Public Class JData
 
 		Dim js As New JavaScriptSerializer()
 
-		js.MaxJsonLength = 50000000
+		js.MaxJsonLength = 100000000
 
 
 
@@ -83,7 +83,7 @@ Public Class JData
 
 		Dim js As New JavaScriptSerializer()
 
-		js.MaxJsonLength = 50000000
+		js.MaxJsonLength = 100000000
 
 
 		If parCodigodoc = "" Or parTipodoc = "" Then

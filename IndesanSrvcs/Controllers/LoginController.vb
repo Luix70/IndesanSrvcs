@@ -61,11 +61,37 @@ Namespace Controllers
 			End If
 
 		End Function
+		<HttpPost>
+		<Route("register")>
+		Public Function Register(candidato As RegisterRequest) As IHttpActionResult
+			Dim strResultado As String
+			If candidato Is Nothing Then
+				Throw New HttpResponseException(HttpStatusCode.BadRequest)
+			End If
+
+			strResultado = VerificarCandidato(candidato)
+
+
+			'If strResultado = "OK" Then
+
+			Return Ok(strResultado)
+			'Else
+
+			'Return Content(HttpStatusCode.Unauthorized, strResultado)
+			'End If
+
+		End Function
 
 		Private Function VerificarCredenciales(login As LoginRequest) As Credencial
 			Dim qj As New QueryJson()
 
 			Return qj.GeneraCredencial(Username:=login.username, Password:=login.password)
+
+		End Function
+		Private Function VerificarCandidato(candidato As RegisterRequest) As String
+			Dim qj As New QueryJson()
+
+			Return qj.VerificarCandidato(Username:=candidato.username, Cif:=candidato.cif, Password:=candidato.password)
 
 		End Function
 	End Class
