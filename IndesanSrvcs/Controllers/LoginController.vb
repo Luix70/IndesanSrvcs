@@ -50,14 +50,10 @@ Namespace Controllers
 				Dim token As String = TokenGenerator.GenerateTokenJwt(login.username, cr)
 				Return Ok(token)
 			Else
-				Dim errorMsg As String
-				If cr.Email = "NOOK" Then
-					errorMsg = "UI"
 
-				Else
-					errorMsg = "CI"
-				End If
-				Return Content(HttpStatusCode.Unauthorized, errorMsg)
+				Return Ok(cr.Password)
+				'Return Content(HttpStatusCode.Unauthorized, cr.Password) 'cr.password contiene el mansaje de error
+
 			End If
 
 		End Function
@@ -91,7 +87,7 @@ Namespace Controllers
 		Private Function VerificarCandidato(candidato As RegisterRequest) As String
 			Dim qj As New QueryJson()
 
-			Return qj.VerificarCandidato(Username:=candidato.username, Cif:=candidato.cif, Password:=candidato.password)
+			Return qj.VerificarCandidato(Username:=candidato.username, Cif:=candidato.cif, Password:=candidato.password, lan:=candidato.lan)
 
 		End Function
 	End Class

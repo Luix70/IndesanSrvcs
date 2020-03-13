@@ -9,6 +9,8 @@ Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 Imports System.Threading
 Imports System.Data.OleDb
+Imports System.Net.Mail
+Imports System.Security.Cryptography
 
 Public Class QueryJson
 
@@ -780,24 +782,39 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 		If cdt.Rows.Count = 1 Then
-			If cdt.Rows(0).Item("Password") = Password Then
-				nc.IdCredencial = cdt.Rows(0).Item("IdCredencial")
-				nc.TipoEntidad = cdt.Rows(0).Item("TipoEntidad")
-				nc.NombreUsuario = cdt.Rows(0).Item("NombreUsuario")
-				nc.Password = "OK"
-				nc.AccesoCli = cdt.Rows(0).Item("AccesoCli")
-				nc.AccesoRep = cdt.Rows(0).Item("AccesoRep")
-				nc.Email = cdt.Rows(0).Item("Email")
-				nc.Idioma = cdt.Rows(0).Item("Idioma")
-			Else
+
+			If Not CBool(cdt.Rows(0).Item("Activada")) Then
 				nc.IdCredencial = -1
 				nc.Email = cdt.Rows(0).Item("Email")
-				nc.Password = "NOOK"
+				nc.Password = "NO_ACTIVADA"
+			Else
+				Dim hashAlg As HashAlgorithm = New SHA256CryptoServiceProvider()
+				Dim bytValue As Byte() = System.Text.Encoding.UTF8.GetBytes(cdt.Rows(0).Item("salt") & "." & Password)
+				Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
+				Dim passBase64 As String = Convert.ToBase64String(bytHash)
+
+				If cdt.Rows(0).Item("Password") = passBase64 Then
+					nc.IdCredencial = cdt.Rows(0).Item("IdCredencial")
+					nc.TipoEntidad = cdt.Rows(0).Item("TipoEntidad")
+					nc.NombreUsuario = cdt.Rows(0).Item("NombreUsuario")
+					nc.Password = "OK"
+					nc.AccesoCli = cdt.Rows(0).Item("AccesoCli")
+					nc.AccesoRep = cdt.Rows(0).Item("AccesoRep")
+					nc.Email = cdt.Rows(0).Item("Email")
+					nc.Idioma = cdt.Rows(0).Item("Idioma")
+				Else
+					nc.IdCredencial = -1
+					nc.Email = cdt.Rows(0).Item("Email")
+					nc.Password = "BAD_PASSWORD"
+				End If
 			End If
+
+
 
 		Else
 			nc.IdCredencial = -1
-			nc.Email = "NOOK"
+			nc.Email = "NO_USER"
+			nc.Password = "NO_USER"
 		End If
 
 
@@ -805,14 +822,15 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Return nc
 
+
 	End Function
-	Public Function VerificarCandidato(Username As String, Cif As String, Password As String) As String
+	Public Function VerificarCandidato(Username As String, Cif As String, Password As String, lan As String) As String
 
 		Dim strConsulta As String
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
 
-		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "'));"
+		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif, Clientes_rst.codigo , Clientes_rst.rzs, Clientes_rst.nombrecomercial FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "'));"
 		Cons.ConnectionString = strConexion
 		Cons.Open()
 
@@ -827,15 +845,29 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 		If cdt.Rows.Count = 1 Then
-			If cdt.Rows(0).Item("email") = Username Then
+			If Not IsDBNull(cdt.Rows(0).Item("email")) Then
+				If cdt.Rows(0).Item("email") = Username Then
+					'creamos una nueva credencial
+					Dim CodCliente As String = cdt.Rows(0).Item("codigo")
+					Dim rzs As String = cdt.Rows(0).Item("rzs")
+					Dim nc As String = rzs
+					If Not IsDBNull(cdt.Rows(0).Item("nombrecomercial")) Then
+						nc = cdt.Rows(0).Item("nombrecomercial")
+					End If
 
-				Return "OK"
+					Dim status As String
+					status = NuevaCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan)
+
+					Return status
+				Else
+					Return "INVALID_EMAIL"
+				End If
 			Else
-				Return "email_invalido"
+				Return "NO_EMAIL"
 			End If
 
 		Else
-			Return "Usuario_desconocido"
+			Return "USER_UNKNOW"
 		End If
 
 
@@ -843,7 +875,162 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
+	Function NuevaCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
 
+		Dim strCodigoTemporal As String = GeneraRegistroCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan)
+
+		If (strCodigoTemporal = "CREDENTIAL_FAILED" Or strCodigoTemporal = "CREDENTIAL_EXISTS_ACTIVATED") Then
+
+			Return strCodigoTemporal
+
+		End If
+
+
+		Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
+		Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
+		Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
+		Dim SMTP_PASSWORD As String = ConfigurationManager.AppSettings("SMTP_PASSWORD")
+		Dim SMTP_SSL As Boolean = Boolean.Parse(ConfigurationManager.AppSettings("SMTP_SSL"))
+
+		Dim client As New SmtpClient()
+
+
+
+
+		client.DeliveryMethod = SmtpDeliveryMethod.Network
+		client.EnableSsl = SMTP_SSL
+		client.Host = SMTP_SERVER
+		client.Port = SMTP_PORT
+
+		' setup Smtp authentication
+		Dim credentials As System.Net.NetworkCredential = New System.Net.NetworkCredential(SMTP_USER, SMTP_PASSWORD)
+		client.UseDefaultCredentials = False
+		client.Credentials = credentials
+
+
+
+		Dim msg As MailMessage = New MailMessage()
+
+		Dim strBody(3) As String
+		strBody(0) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2> Para activar tu cuenta haz click en el siguiente enlace:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activar Cuenta</a><br></body>"
+		strBody(1) = $"<html><head></head><body><h1>Bienvenu sur INDESAN. </h1><h2> Pour activer votre compte suivez le lien:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activer Compte</a><br></body>"
+		strBody(2) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2> To activate your account, please follow the link:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activate Account</a><br></body>"
+
+		Dim strSubject(3) As String
+		strSubject(0) = "Sus credenciales para el Área de Cliente de INDESAN"
+		strSubject(1) = "Vos coordonnées pour l'Espace Client de INDESAN"
+		strSubject(2) = "Your login for INDESAN's User Area"
+
+		msg.From = New MailAddress(SMTP_USER)
+		'msg.To.Add(New MailAddress(Username))
+		msg.To.Add(New MailAddress("compras@indesan.com"))
+
+		Dim intLan As Long
+		Select Case lan.ToUpper()
+			Case "ES"
+				intLan = 0
+			Case "FR"
+				intLan = 1
+			Case "EN"
+				intLan = 2
+		End Select
+
+		msg.Subject = strSubject(intLan)
+		msg.IsBodyHtml = True
+		msg.Body = strBody(intLan)
+
+		Try
+			client.Send(msg)
+			Return "OK"
+		Catch ex As Exception
+			Return "EMAIL_FAILED"
+		End Try
+
+
+	End Function
+
+	Private Function GeneraRegistroCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
+
+		'Comprobar que si credencial no existe ya.
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion " &
+						"From Credenciales_rst " &
+						"Where (((Credenciales_rst.email) = '" & Username & "'));"
+
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		' 1.- Si existe daremos al usuario al opcion de recuperar contraseña
+		If cdt.Rows.Count > 0 Then
+			'VER SI ESTÁ ACTIVADA
+			If CBool(cdt.Rows(0).Item("Activada")) = "True" Then
+				Return "CREDENTIAL_EXISTS_ACTIVATED" 'La credencial Ya existe
+			Else
+				Return cdt.Rows(0).Item("codigoActivacion")
+			End If
+		Else
+
+			' 2.- Si no existe generamos el hash para la contraseña
+			Dim passwordHash As String = CreateSalt(24) 'importante que sea 24 o cualquier numero de bytes qye no genere un padding (= ó ==)
+			Dim codigoActivacion As String = CreateSalt(24)
+
+			Dim hashAlg As HashAlgorithm = New SHA256CryptoServiceProvider()
+			Dim bytValue As Byte() = System.Text.Encoding.UTF8.GetBytes(passwordHash & "." & Password)
+			Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
+			Dim passBase64 As String = Convert.ToBase64String(bytHash)
+
+			'vamos a intentar guardar la contraseña en la base de datos
+
+
+			Try
+				Dim strCad As String = "INSERT INTO Credenciales_rst ( TipoEntidad, NombreUsuario, Salt, [Password], AccesoCli, AccesoRep, email, Idioma, Activada, codigoActivacion ) " &
+										   $"SELECT 'CL' AS te, '{nc}' AS nc, '{passwordHash}' AS sa, '{passBase64}' AS pa, '{CodCliente}' AS ac, '*' AS ar, '{Username}' AS email, '{lan.ToUpper()}' AS lan, False AS act, '{codigoActivacion}' as codigoActivacion;"
+
+
+				Cons = New OleDb.OleDbConnection
+
+				Cons.ConnectionString = strConexion
+				Cons.Open()
+
+				Dim cmd As New OleDbCommand(strCad, Cons)
+
+				Dim i As Long
+				i = cmd.ExecuteNonQuery()
+				Cons.Close()
+				Cons = Nothing
+
+
+			Catch ex As Exception
+				Return "CREDENTIAL_FAILED"
+			End Try
+
+
+			Return codigoActivacion
+		End If
+
+
+
+
+	End Function
+	Private Shared Function CreateSalt(ByVal size As Integer) As String
+		Dim rng As RNGCryptoServiceProvider = New RNGCryptoServiceProvider()
+		Dim buff As Byte() = New Byte(size - 1) {}
+		rng.GetBytes(buff)
+		Return Convert.ToBase64String(buff)
+	End Function
 	Function ConsultarDB(sql As String) As String
 		' hay que leerlo de nuevo
 		Dim Res = New Resultado

@@ -25,6 +25,8 @@ Namespace Models
 		Private newUsername As String
 		Private newPassword As String
 		Private newCif As String
+		Private newLan As String
+
 		Public Property username() As String
 			Get
 				Return newUsername
@@ -47,6 +49,15 @@ Namespace Models
 			End Get
 			Set(ByVal value As String)
 				newPassword = value
+			End Set
+		End Property
+
+		Public Property lan As String
+			Get
+				Return newLan
+			End Get
+			Set(value As String)
+				newLan = value
 			End Set
 		End Property
 	End Class
