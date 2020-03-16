@@ -77,6 +77,46 @@ Namespace Controllers
 			'End If
 
 		End Function
+		<HttpPost>
+		<Route("activate")>
+		Public Function Activate(candidato As ActivationRequest) As IHttpActionResult
+			Dim strResultado As String
+			If candidato Is Nothing Then
+				Throw New HttpResponseException(HttpStatusCode.BadRequest)
+			End If
+
+			strResultado = VerificarActivacion(candidato)
+
+
+			'If strResultado = "OK" Then
+
+			Return Ok(strResultado)
+			'Else
+
+			'Return Content(HttpStatusCode.Unauthorized, strResultado)
+			'End If
+
+		End Function
+		<HttpPost>
+		<Route("passwordRecovery")>
+		Public Function Recovery(candidato As RegisterRequest) As IHttpActionResult
+			Dim strResultado As String
+			If candidato Is Nothing Then
+				Throw New HttpResponseException(HttpStatusCode.BadRequest)
+			End If
+
+			strResultado = VerificarPassword(candidato)
+
+
+			'If strResultado = "OK" Then
+
+			Return Ok(strResultado)
+			'Else
+
+			'Return Content(HttpStatusCode.Unauthorized, strResultado)
+			'End If
+
+		End Function
 
 		Private Function VerificarCredenciales(login As LoginRequest) As Credencial
 			Dim qj As New QueryJson()
@@ -88,6 +128,19 @@ Namespace Controllers
 			Dim qj As New QueryJson()
 
 			Return qj.VerificarCandidato(Username:=candidato.username, Cif:=candidato.cif, Password:=candidato.password, lan:=candidato.lan)
+
+		End Function
+		Private Function VerificarPassword(candidato As RegisterRequest) As String
+			Dim qj As New QueryJson()
+
+			Return qj.VerificarPassword(Username:=candidato.username, lan:=candidato.lan)
+
+		End Function
+
+		Private Function VerificarActivacion(candidato As ActivationRequest) As String
+			Dim qj As New QueryJson()
+
+			Return qj.VerificarActivacion(candidato:=candidato.cli, codigo:=candidato.cod)
 
 		End Function
 	End Class

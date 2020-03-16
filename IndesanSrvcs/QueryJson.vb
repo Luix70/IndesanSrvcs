@@ -824,6 +824,68 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
+	Public Function VerificarActivacion(candidato As String, codigo As String) As String
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.codigoActivacion, Credenciales_rst.Activada " &
+						"FROM Credenciales_rst " &
+						$"WHERE (((Credenciales_rst.TipoEntidad)='CL') AND ((Credenciales_rst.AccesoCli)='{candidato}'));"
+
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		If cdt.Rows.Count = 1 Then
+			If CBool(cdt.Rows(0).Item("Activada")) Then
+				Return "ALREADY_ACTIVATED"
+			End If
+
+			If cdt.Rows(0).Item("codigoActivacion") <> codigo Then
+				Return "CODE_MISMATCH"
+			End If
+
+			Try
+
+				Dim strCad As String = "UPDATE Credenciales_rst Set Credenciales_rst.codigoActivacion = Null, Credenciales_rst.Activada = True " &
+										$"WHERE (((Credenciales_rst.TipoEntidad)='CL') AND ((Credenciales_rst.AccesoCli)='{candidato}') AND ((Credenciales_rst.codigoActivacion)='{codigo}'));"
+
+				Cons = New OleDb.OleDbConnection
+
+				Cons.ConnectionString = strConexion
+				Cons.Open()
+
+				Dim cmd As New OleDbCommand(strCad, Cons)
+
+				Dim i As Long
+				i = cmd.ExecuteNonQuery()
+				Cons.Close()
+				Cons = Nothing
+				Return "OK"
+
+			Catch ex As Exception
+				Return "ACTIVATION_ERROR"
+			End Try
+
+
+
+		Else
+			Return "ACTIVATION_CODE_NOT_FOUND"
+		End If
+	End Function
+
+
 	Public Function VerificarCandidato(Username As String, Cif As String, Password As String, lan As String) As String
 
 		Dim strConsulta As String
@@ -875,6 +937,88 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
+	Public Function VerificarPassword(Username As String, lan As String) As String
+
+		'Comprobar que si credencial no existe ya.
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion " &
+						"From Credenciales_rst " &
+						"Where (((Credenciales_rst.email) = '" & Username & "'));"
+
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		' 1.- Si existe daremos al usuario al opcion de recuperar contraseña
+		If cdt.Rows.Count = 1 Then
+			'VER SI ESTÁ ACTIVADA
+			If CBool(cdt.Rows(0).Item("Activada")) Then
+				' 2.- Si no existe generamos el hash para la contraseña
+				Dim passwordHash As String = CreateSalt(24) 'importante que sea 8 o cualquier numero de bytes qye no genere un padding (= ó ==)
+				Dim Password As String = CreateSalt(9) ' generamos un password aleatorio
+
+				Dim hashAlg As HashAlgorithm = New SHA256CryptoServiceProvider()
+				Dim bytValue As Byte() = System.Text.Encoding.UTF8.GetBytes(passwordHash & "." & Password)
+				Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
+				Dim passBase64 As String = Convert.ToBase64String(bytHash)
+
+				'vamos a intentar guardar la contraseña en la base de datos
+
+
+				Try
+					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}' " &
+											$"WHERE(((Credenciales_rst.NombreUsuario) = '{Username}'));"
+
+
+					Cons = New OleDb.OleDbConnection
+
+					Cons.ConnectionString = strConexion
+					Cons.Open()
+
+					Dim cmd As New OleDbCommand(strCad, Cons)
+
+					Dim i As Long
+					i = cmd.ExecuteNonQuery()
+					Cons.Close()
+					Cons = Nothing
+
+
+				Catch ex As Exception
+					Return "CREDENTIAL_FAILED"
+				End Try
+
+
+				Return SendNewPassword(Username, Password, lan)
+
+			Else
+				Return "CREDENTIAL_NOT_ACTIVATED"
+			End If
+		Else
+
+			Return "CREDENTIAL_NOT_EXISTS"
+		End If
+
+
+
+
+	End Function
+
+
+
+
+
 	Function NuevaCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
 
 		Dim strCodigoTemporal As String = GeneraRegistroCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan)
@@ -912,9 +1056,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim msg As MailMessage = New MailMessage()
 
 		Dim strBody(3) As String
-		strBody(0) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2> Para activar tu cuenta haz click en el siguiente enlace:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activar Cuenta</a><br></body>"
-		strBody(1) = $"<html><head></head><body><h1>Bienvenu sur INDESAN. </h1><h2> Pour activer votre compte suivez le lien:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activer Compte</a><br></body>"
-		strBody(2) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2> To activate your account, please follow the link:</h2> <br/><a href=https://indesan.org/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activate Account</a><br></body>"
+		strBody(0) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2>Este email es para verificar que es Vd el propietario de la cuenta de correo empleada para el registro</h2><h2> Para activar tu cuenta haz click en el siguiente enlace:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activar Cuenta</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(1) = $"<html><head></head><body><h1>Bienvenu sur INDESAN. </h1><h2>Le but de cet messagee est de vérifier que vous êtes le proprietaire de l'adresse électronique employée pour l'inscription</h2><h2> Pour activer votre compte suivez le lien:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activer Compte</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(2) = $"<html><head></head><body><h1>Welcome to INDESAN. </h1><h2> This is to verify that you are the owner of the e-mail account used in the registration process</h2><h2>To activate your account, please follow the link:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activate Account</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
 
 		Dim strSubject(3) As String
 		strSubject(0) = "Sus credenciales para el Área de Cliente de INDESAN"
@@ -922,8 +1066,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		strSubject(2) = "Your login for INDESAN's User Area"
 
 		msg.From = New MailAddress(SMTP_USER)
-		'msg.To.Add(New MailAddress(Username))
-		msg.To.Add(New MailAddress("compras@indesan.com"))
+		msg.To.Add(New MailAddress(Username))
+		'msg.To.Add(New MailAddress("compras@indesan.com"))
 
 		Dim intLan As Long
 		Select Case lan.ToUpper()
@@ -948,7 +1092,67 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
+	Private Function SendNewPassword(Username As String, password As String, lan As String) As String
+		Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
+		Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
+		Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
+		Dim SMTP_PASSWORD As String = ConfigurationManager.AppSettings("SMTP_PASSWORD")
+		Dim SMTP_SSL As Boolean = Boolean.Parse(ConfigurationManager.AppSettings("SMTP_SSL"))
 
+		Dim client As New SmtpClient()
+
+
+
+
+		client.DeliveryMethod = SmtpDeliveryMethod.Network
+		client.EnableSsl = SMTP_SSL
+		client.Host = SMTP_SERVER
+		client.Port = SMTP_PORT
+
+		' setup Smtp authentication
+		Dim credentials As System.Net.NetworkCredential = New System.Net.NetworkCredential(SMTP_USER, SMTP_PASSWORD)
+		client.UseDefaultCredentials = False
+		client.Credentials = credentials
+
+
+
+		Dim msg As MailMessage = New MailMessage()
+
+		Dim strBody(3) As String
+		strBody(0) = $"<html><head></head><body><h1>MENSAJE DE INDESAN S.L. </h1><h2>A continuación encontrará un juego de credenciales para identificarse en el área de usuario de la web de INDESAN</h2><h2> Nombre de Usuario: {Username}</h2><h2> Contraseña: {password}</h2><br/><h2>Le recordamos que desde el panel de control de su área de usuario podrá cambiar la contraseña si lo desea.</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(1) = $"<html><head></head><body><h1>CELUI-CI EST UN MESSAGE D'INDESAN S.L. </h1><h2>Vous trouverez ici un nouveau jeu de coordonnés pour vous identifier sur la web d'INDESAN</h2><h2> Nom d'utilisateur: {Username}</h2><h2> Mot de passe: {password}</h2><br/><h2>Vous aurez la possibilité de changer le mot de passe dans votre tableau de bord</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(2) = $"<html><head></head><body><h1>THIS IS A MESSAGE FROM INDESAN S.L. </h1><h2>You will find here your new credentialse for the User Area at the INDESAN Web</h2><h2> User Name: {Username}</h2><h2> Password: {password}</h2><br/><h2>You'll be able to change it from your dashboard once logged in</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+
+		Dim strSubject(3) As String
+		strSubject(0) = "Sus nuevas credenciales para el Área de Cliente de INDESAN"
+		strSubject(1) = "Vos nouvelles coordonnées pour l'Espace Client de INDESAN"
+		strSubject(2) = "Your new credentials for INDESAN's User Area"
+
+		msg.From = New MailAddress(SMTP_USER)
+		msg.To.Add(New MailAddress(Username))
+		'msg.To.Add(New MailAddress("compras@indesan.com"))
+
+		Dim intLan As Long
+		Select Case lan.ToUpper()
+			Case "ES"
+				intLan = 0
+			Case "FR"
+				intLan = 1
+			Case "EN"
+				intLan = 2
+		End Select
+
+		msg.Subject = strSubject(intLan)
+		msg.IsBodyHtml = True
+		msg.Body = strBody(intLan)
+
+		Try
+			client.Send(msg)
+			Return "OK"
+		Catch ex As Exception
+			Return "EMAIL_FAILED"
+		End Try
+	End Function
 	Private Function GeneraRegistroCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
 
 		'Comprobar que si credencial no existe ya.

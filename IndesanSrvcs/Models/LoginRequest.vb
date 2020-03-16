@@ -61,7 +61,28 @@ Namespace Models
 			End Set
 		End Property
 	End Class
+	Public Class ActivationRequest
+		Private codCliente As String
+		Private codActivacion As String
 
+		Public Property cli As String
+			Get
+				Return codCliente
+			End Get
+			Set(value As String)
+				codCliente = value
+			End Set
+		End Property
+
+		Public Property cod As String
+			Get
+				Return codActivacion
+			End Get
+			Set(value As String)
+				codActivacion = value
+			End Set
+		End Property
+	End Class
 	Public Class Credencial
 		Private IdCredencial_ As Long
 		Private TipoEntidad_ As String
