@@ -64,6 +64,7 @@ Namespace Models
 	Public Class ActivationRequest
 		Private codCliente As String
 		Private codActivacion As String
+		Private strLan As String
 
 		Public Property cli As String
 			Get
@@ -80,6 +81,15 @@ Namespace Models
 			End Get
 			Set(value As String)
 				codActivacion = value
+			End Set
+		End Property
+
+		Public Property lan As String
+			Get
+				Return strLan
+			End Get
+			Set(value As String)
+				strLan = value
 			End Set
 		End Property
 	End Class

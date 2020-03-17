@@ -824,7 +824,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
-	Public Function VerificarActivacion(candidato As String, codigo As String) As String
+	Public Function VerificarActivacion(candidato As String, codigo As String, lan As String) As String
 		Dim strConsulta As String
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
@@ -943,7 +943,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim strConsulta As String
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
-
+		Dim codCliente As String
 		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion " &
 						"From Credenciales_rst " &
 						"Where (((Credenciales_rst.email) = '" & Username & "'));"
@@ -968,18 +968,18 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				' 2.- Si no existe generamos el hash para la contraseña
 				Dim passwordHash As String = CreateSalt(24) 'importante que sea 8 o cualquier numero de bytes qye no genere un padding (= ó ==)
 				Dim Password As String = CreateSalt(9) ' generamos un password aleatorio
-
+				Dim codActivacion As String = CreateSalt(24)
 				Dim hashAlg As HashAlgorithm = New SHA256CryptoServiceProvider()
 				Dim bytValue As Byte() = System.Text.Encoding.UTF8.GetBytes(passwordHash & "." & Password)
 				Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
 				Dim passBase64 As String = Convert.ToBase64String(bytHash)
-
+				codCliente = cdt.Rows(0).Item("accesoCli")
 				'vamos a intentar guardar la contraseña en la base de datos
 
 
 				Try
-					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}' " &
-											$"WHERE(((Credenciales_rst.NombreUsuario) = '{Username}'));"
+					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}',  Credenciales_rst.[codigoActivacion] = '{codActivacion}', Credenciales_rst.[Activada] = False " &
+											$"WHERE(((Credenciales_rst.email) = '{Username}'));"
 
 
 					Cons = New OleDb.OleDbConnection
@@ -1000,7 +1000,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				End Try
 
 
-				Return SendNewPassword(Username, Password, lan)
+				Return SendNewPassword(Username, Password, codActivacion, codcliente, lan)
 
 			Else
 				Return "CREDENTIAL_NOT_ACTIVATED"
@@ -1056,9 +1056,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim msg As MailMessage = New MailMessage()
 
 		Dim strBody(3) As String
-		strBody(0) = $"<html><head></head><body><h1>Bienvenido a INDESAN. </h1><h2>Este email es para verificar que es Vd el propietario de la cuenta de correo empleada para el registro</h2><h2> Para activar tu cuenta haz click en el siguiente enlace:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activar Cuenta</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
-		strBody(1) = $"<html><head></head><body><h1>Bienvenu sur INDESAN. </h1><h2>Le but de cet messagee est de vérifier que vous êtes le proprietaire de l'adresse électronique employée pour l'inscription</h2><h2> Pour activer votre compte suivez le lien:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activer Compte</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
-		strBody(2) = $"<html><head></head><body><h1>Welcome to INDESAN. </h1><h2> This is to verify that you are the owner of the e-mail account used in the registration process</h2><h2>To activate your account, please follow the link:</h2> <br/><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}>Activate Account</a><br><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(0) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>Bienvenido a INDESAN. </h1><p>Este email es para verificar que es Vd el propietario de la cuenta de correo empleada para el registro</p><p> Para activar su cuenta haga click en el siguiente enlace:</p> <ul><li><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}&lan=es>Activar Cuenta</a></li></ul><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body>"
+		strBody(1) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>Bienvenu sur INDESAN. </h1><p>Le but de cet messagee est de vérifier que vous êtes le proprietaire de l'adresse électronique employée pour l'inscription</p><p> Pour activer votre compte suivez le lien:</p> <ul><li><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={CodCliente}&lan=fr>Activer Compte</a></li></ul><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body>"
+		strBody(2) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>Welcome to INDESAN.</h1><p> This is to verify that you are the owner of the e-mail account used in the registration process</p><p>To activate your account, please follow the link:</p> <ul><li><a href=https://indesan.com/activate?com={strCodigoTemporal}&cli={CodCliente}&lan=en>Activate Account</a></li></ul><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body>"
 
 		Dim strSubject(3) As String
 		strSubject(0) = "Sus credenciales para el Área de Cliente de INDESAN"
@@ -1092,7 +1092,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
-	Private Function SendNewPassword(Username As String, password As String, lan As String) As String
+	Private Function SendNewPassword(Username As String, password As String, strCodigoTemporal As String, codcliente As String, lan As String) As String
 		Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
 		Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
 		Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
@@ -1119,9 +1119,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim msg As MailMessage = New MailMessage()
 
 		Dim strBody(3) As String
-		strBody(0) = $"<html><head></head><body><h1>MENSAJE DE INDESAN S.L. </h1><h2>A continuación encontrará un juego de credenciales para identificarse en el área de usuario de la web de INDESAN</h2><h2> Nombre de Usuario: {Username}</h2><h2> Contraseña: {password}</h2><br/><h2>Le recordamos que desde el panel de control de su área de usuario podrá cambiar la contraseña si lo desea.</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
-		strBody(1) = $"<html><head></head><body><h1>CELUI-CI EST UN MESSAGE D'INDESAN S.L. </h1><h2>Vous trouverez ici un nouveau jeu de coordonnés pour vous identifier sur la web d'INDESAN</h2><h2> Nom d'utilisateur: {Username}</h2><h2> Mot de passe: {password}</h2><br/><h2>Vous aurez la possibilité de changer le mot de passe dans votre tableau de bord</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
-		strBody(2) = $"<html><head></head><body><h1>THIS IS A MESSAGE FROM INDESAN S.L. </h1><h2>You will find here your new credentialse for the User Area at the INDESAN Web</h2><h2> User Name: {Username}</h2><h2> Password: {password}</h2><br/><h2>You'll be able to change it from your dashboard once logged in</h2><h3>INDESAN SL</h3><h3>webmaster@indesan.com</h3></body>"
+		strBody(0) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>MENSAJE DE INDESAN S.L. </h1><p>A continuación encontrará un juego de credenciales para identificarse en el área de usuario de la web de INDESAN</p><ul><li> Nombre de Usuario: {Username}</li><li> Contraseña: {password}</li></ul><p> Para activar tu cuenta haz click en el siguiente enlace:</p> <ul><li><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={codcliente}&lan=es>Activar Cuenta</a></li></ul><p>Le recordamos que desde el panel de control de su área de usuario podrá cambiar la contraseña si lo desea.</p><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body"
+		strBody(1) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>CELUI-CI EST UN MESSAGE D'INDESAN S.L. </h1><p>Voici un nouveau jeu de coordonnées pour vous identifier sur la web d'INDESAN</p><ul><li> Nom d'utilisateur: {Username}</li><li> Mot de passe: {password}</li></ul><p> Pour activer votre compte suivez le lien:</p> <ul><li><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={codcliente}&lan=fr>Activer Compte</a></li></ul><p>Vous aurez la possibilité de changer le mot de passe dans votre tableau de bord</p><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body"
+		strBody(2) = $"<html><head></head><body><div style=' font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#666666; padding:20px;'><h1>THIS IS A MESSAGE FROM INDESAN S.L. </h1><p>You will find here your new credentials for the User Area at the INDESAN Web</p><ul><li> User Name: {Username}</li><li> Password: {password}</li></ul><p>To activate your account, please follow the link:</p> <ul><li><a href=https://indesan.com/activate?cod={strCodigoTemporal}&cli={codcliente}&lan=en>Activate Account</a></li></ul><p>You'll be able to change it from your dashboard once logged in</p><hr/><p>INDESAN SL</p><p>webmaster@indesan.com</p></div></body"
 
 		Dim strSubject(3) As String
 		strSubject(0) = "Sus nuevas credenciales para el Área de Cliente de INDESAN"

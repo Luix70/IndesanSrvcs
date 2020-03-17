@@ -10,9 +10,9 @@ Namespace Controllers
 		Inherits ApiController
 
 		<HttpGet>
-		<Route("GetId")>
-		Public Function GetId(ByVal id As Int32) As IHttpActionResult
-			Dim customerFake = "customer-fake"
+		<Route("GetId/{id}")>
+		Public Function GetId(ByVal id As String) As IHttpActionResult
+			Dim customerFake As String = "{" & $"""id"": ""{id}""" & "}"
 			Return Ok(customerFake)
 		End Function
 

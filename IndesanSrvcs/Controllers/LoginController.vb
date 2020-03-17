@@ -140,7 +140,7 @@ Namespace Controllers
 		Private Function VerificarActivacion(candidato As ActivationRequest) As String
 			Dim qj As New QueryJson()
 
-			Return qj.VerificarActivacion(candidato:=candidato.cli, codigo:=candidato.cod)
+			Return qj.VerificarActivacion(candidato:=candidato.cli, codigo:=candidato.cod, lan:=candidato.lan)
 
 		End Function
 	End Class
