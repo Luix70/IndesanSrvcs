@@ -12,8 +12,10 @@ Namespace Controllers
 		<HttpGet>
 		<Route("GetId/{id}")>
 		Public Function GetId(ByVal id As String) As IHttpActionResult
-			Dim customerFake As String = "{" & $"""id"": ""{id}""" & "}"
-			Return Ok(customerFake)
+			'Dim customer As String = "{" & $"""id"": ""{id}""" & "}"
+			Dim qj As New QueryJson
+			Dim customer As String = qj.DatosCliente(id)
+			Return Ok(customer)
 		End Function
 
 		<HttpGet>

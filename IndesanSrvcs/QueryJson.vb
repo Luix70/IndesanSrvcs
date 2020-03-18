@@ -11,6 +11,7 @@ Imports System.Threading
 Imports System.Data.OleDb
 Imports System.Net.Mail
 Imports System.Security.Cryptography
+Imports System.Reflection
 
 Public Class QueryJson
 
@@ -455,7 +456,209 @@ Public Class QueryJson
 		Public Bultos As Long
 
 	End Class
+	Private Class FichaCliente
+		'Tabla Clientes
+		Private _codigo1 As String
+		Private _rzs1 As String
+		Private _nombrecomercial1 As String
+		Private _direcc1 As String
+		Private _poblacion1 As String
+		Private _cp11 As String
+		Private _telef1 As String
+		Private _fax1 As String
+		Private _cif1 As String
+		Private _tarifa1 As String
+		Private _email1 As String
+		Private _idioma1 As String
+		Private _latitud_cli1 As String
+		Private _longitud_cli1 As String
+		Private _direccionFraElectronica1 As String
 
+
+
+		'Tabla Provincias
+		Private _nomProvincia1 As String
+
+		'Tabla Representantes
+		Private _nomRepresentante1 As String
+		Private _telRepresentante1 As String
+		Private _emailRepresentante1 As String
+
+
+		'Control
+		Public Found As Boolean
+
+		Public Property Codigo As String
+			Get
+				Return _codigo1
+			End Get
+			Set(value As String)
+				_codigo1 = value
+			End Set
+		End Property
+
+		Public Property Rzs As String
+			Get
+				Return _rzs1
+			End Get
+			Set(value As String)
+				_rzs1 = value
+			End Set
+		End Property
+
+		Public Property Nombrecomercial As String
+			Get
+				Return _nombrecomercial1
+			End Get
+			Set(value As String)
+				_nombrecomercial1 = value
+			End Set
+		End Property
+
+		Public Property Direcc As String
+			Get
+				Return _direcc1
+			End Get
+			Set(value As String)
+				_direcc1 = value
+			End Set
+		End Property
+
+		Public Property Poblacion As String
+			Get
+				Return _poblacion1
+			End Get
+			Set(value As String)
+				_poblacion1 = value
+			End Set
+		End Property
+
+		Public Property Cp1 As String
+			Get
+				Return _cp11
+			End Get
+			Set(value As String)
+				_cp11 = value
+			End Set
+		End Property
+
+		Public Property Telef As String
+			Get
+				Return _telef1
+			End Get
+			Set(value As String)
+				_telef1 = value
+			End Set
+		End Property
+
+		Public Property Fax As String
+			Get
+				Return _fax1
+			End Get
+			Set(value As String)
+				_fax1 = value
+			End Set
+		End Property
+
+		Public Property Cif As String
+			Get
+				Return _cif1
+			End Get
+			Set(value As String)
+				_cif1 = value
+			End Set
+		End Property
+
+		Public Property Tarifa As String
+			Get
+				Return _tarifa1
+			End Get
+			Set(value As String)
+				_tarifa1 = value
+			End Set
+		End Property
+
+		Public Property Email As String
+			Get
+				Return _email1
+			End Get
+			Set(value As String)
+				_email1 = value
+			End Set
+		End Property
+
+		Public Property Idioma As String
+			Get
+				Return _idioma1
+			End Get
+			Set(value As String)
+				_idioma1 = value
+			End Set
+		End Property
+
+		Public Property Latitud_cli As String
+			Get
+				Return _latitud_cli1
+			End Get
+			Set(value As String)
+				_latitud_cli1 = value
+			End Set
+		End Property
+
+		Public Property Longitud_cli As String
+			Get
+				Return _longitud_cli1
+			End Get
+			Set(value As String)
+				_longitud_cli1 = value
+			End Set
+		End Property
+
+		Public Property DireccionFraElectronica As String
+			Get
+				Return _direccionFraElectronica1
+			End Get
+			Set(value As String)
+				_direccionFraElectronica1 = value
+			End Set
+		End Property
+
+		Public Property NomProvincia As String
+			Get
+				Return _nomProvincia1
+			End Get
+			Set(value As String)
+				_nomProvincia1 = value
+			End Set
+		End Property
+
+		Public Property NomRepresentante As String
+			Get
+				Return _nomRepresentante1
+			End Get
+			Set(value As String)
+				_nomRepresentante1 = value
+			End Set
+		End Property
+
+		Public Property TelRepresentante As String
+			Get
+				Return _telRepresentante1
+			End Get
+			Set(value As String)
+				_telRepresentante1 = value
+			End Set
+		End Property
+
+		Public Property EmailRepresentante As String
+			Get
+				Return _emailRepresentante1
+			End Get
+			Set(value As String)
+				_emailRepresentante1 = value
+			End Set
+		End Property
+	End Class
 	Public Function RegistrarMensaje(msg As JObject) As JObject
 
 		Dim strCadenaConsulta As String
@@ -522,6 +725,102 @@ Public Class QueryJson
 
 
 		Return res
+
+	End Function
+	Public Function DatosCliente(id As String) As String
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+		Dim js As JavaScriptSerializer
+		js = New JavaScriptSerializer()
+		js.MaxJsonLength = 100000000
+
+
+
+		Dim res As New FichaCliente ' valores por defecto
+		res.Found = False
+		res.Codigo = id
+
+
+		Dim strCadenaConsulta As String
+
+		strCadenaConsulta = "SELECT CLIENTES_RST.codigo, CLIENTES_RST.rzs, CLIENTES_RST.nombrecomercial, CLIENTES_RST.direcc, CLIENTES_RST.poblacion, CLIENTES_RST.cp1, CLIENTES_RST.telef, CLIENTES_RST.fax, CLIENTES_RST.cif, CLIENTES_RST.tarifa , CLIENTES_RST.email , CLIENTES_RST.Idioma, CLIENTES_RST.latitud_cli, CLIENTES_RST.longitud_cli, CLIENTES_RST.direccionFraElectronica, Provincias.provincia AS nomProvincia, REPRESENTANTES_RST.nombre AS nomRepresentante, REPRESENTANTES_RST.telefono AS telRepresentante, REPRESENTANTES_RST.email AS emailRepresentante " &
+								"FROM REPRESENTANTES_RST INNER JOIN (Provincias INNER JOIN CLIENTES_RST ON Provincias.codprov = CLIENTES_RST.codprov) ON REPRESENTANTES_RST.codigo = CLIENTES_RST.codrep1 " &
+								$"WHERE (((CLIENTES_RST.codigo)='{id}'));"
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+
+
+		If dt.Rows.Count = 1 Then
+
+
+			With dt.Rows(0)
+
+				Dim type As Type = res.GetType()
+				Dim properties() As Reflection.PropertyInfo = type.GetProperties()
+				For Each _property As Reflection.PropertyInfo In properties
+
+
+
+
+					If IsDBNull(.Item(_property.Name)) Then
+						_property.SetValue(res, "")
+					Else
+						_property.SetValue(res, .Item(_property.Name).ToString())
+					End If
+
+
+
+				Next
+
+
+				res.Found = True
+				'res.codigo = id
+				'res.cif = .Item("cif")
+				'res.cp1 = .Item("cp1")
+				'res.direcc = .Item("direcc")
+				'res.direccionFraElectronica = .Item("direccionFraElectronica")
+				'res.email = .Item("email")
+				'res.emailRepresentante = .Item("emailRepresentante")
+				'res.fax = .Item("fax")
+				'res.Idioma = .Item("Idioma")
+				'res.latitud_cli = .Item("latitud_cli")
+				'res.longitud_cli = .Item("longitud_cli")
+				'res.nombrecomercial = .Item("nombrecomercial")
+				'res.nomProvincia = .Item("nomProvincia")
+				'res.nomRepresentante = .Item("nomRepresentante")
+				'res.poblacion = .Item("poblacion")
+				'res.rzs = .Item("rzs")
+				'res.tarifa = .Item("tarifa")
+				'res.telef = .Item("telef")
+				'res.telRepresentante = .Item("telRepresentante")
+			End With
+
+
+		End If
+
+		Json = js.Serialize(res)
+		Return Json
+
+
 
 	End Function
 	Public Function GenerarScanJson(parTipodoc As String, parCodigodoc As String) As Object
@@ -892,7 +1191,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
 
-		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif, Clientes_rst.codigo , Clientes_rst.rzs, Clientes_rst.nombrecomercial FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "'));"
+		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif, Clientes_rst.codigo , Clientes_rst.rzs, Clientes_rst.nombrecomercial FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "' AND  (Clientes_rst.Activo = False) ));"
 		Cons.ConnectionString = strConexion
 		Cons.Open()
 
@@ -906,7 +1205,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons.Close()
 		Cons = Nothing
 
-		If cdt.Rows.Count = 1 Then
+		If cdt.Rows.Count > 0 Then
 			If Not IsDBNull(cdt.Rows(0).Item("email")) Then
 				If cdt.Rows(0).Item("email") = Username Then
 					'creamos una nueva credencial
@@ -1000,7 +1299,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				End Try
 
 
-				Return SendNewPassword(Username, Password, codActivacion, codcliente, lan)
+				Return SendNewPassword(Username, Password, codActivacion, codCliente, lan)
 
 			Else
 				Return "CREDENTIAL_NOT_ACTIVATED"
