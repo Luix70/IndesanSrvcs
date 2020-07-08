@@ -102,6 +102,8 @@ Namespace Models
 		Private AccesoRep_ As String
 		Private Email_ As String
 		Private Idioma_ As String
+		Private AccesoDocumentos_ As New Collection
+
 
 		Public Property IdCredencial As Long
 			Get
@@ -172,6 +174,15 @@ Namespace Models
 			End Get
 			Set(value As String)
 				Idioma_ = value
+			End Set
+		End Property
+
+		Public Property AccesoDocumentos As Collection
+			Get
+				Return AccesoDocumentos_
+			End Get
+			Set(value As Collection)
+				AccesoDocumentos_ = value
 			End Set
 		End Property
 	End Class

@@ -215,6 +215,7 @@ Public Class QueryJson
 		Public documentos As New Collection
 		Public totalDocumentos As Integer
 
+
 		Function obtenerDocumentos(codigo As String) As Integer
 
 			Dim n_documentos As Integer = 0
@@ -1101,8 +1102,73 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					nc.AccesoRep = cdt.Rows(0).Item("AccesoRep")
 					nc.Email = cdt.Rows(0).Item("Email")
 					nc.Idioma = cdt.Rows(0).Item("Idioma")
-				Else
-					nc.IdCredencial = -1
+
+					If cdt.Rows(0).Item("verPedidos") = True Then
+						nc.AccesoDocumentos.Add("1")
+						nc.AccesoDocumentos.Add("42")
+					End If
+
+					If cdt.Rows(0).Item("verConfClientes") = True Then
+						nc.AccesoDocumentos.Add("8")
+
+					End If
+
+					If cdt.Rows(0).Item("verAlbaranes") = True Then
+
+						nc.AccesoDocumentos.Add("2")
+
+					End If
+
+					If cdt.Rows(0).Item("verConfRepresentantes") = True Then
+						nc.AccesoDocumentos.Add("40")
+
+					End If
+
+					If cdt.Rows(0).Item("verFacturas") = True Then
+						nc.AccesoDocumentos.Add("3")
+
+
+					End If
+
+					If cdt.Rows(0).Item("verAlbaranesFirmados") = True Then
+
+						nc.AccesoDocumentos.Add("45")
+
+					End If
+
+					If cdt.Rows(0).Item("verFacturasEnviadas") = True Then
+
+						nc.AccesoDocumentos.Add("34")
+
+					End If
+
+
+					'Actualizamos la fecha del ultimo acceso
+
+					Dim strFecha As String
+						Dim dtFecha As Date = Date.Now().ToLocalTime()
+						strFecha = $"{dtFecha.Month}/{dtFecha.Day}/{dtFecha.Year} {dtFecha.Hour}:{dtFecha.Minute}:{dtFecha.Second}"
+
+						Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.FechaUltimoAcceso = #{strFecha}# " &
+												$"WHERE (((Credenciales_rst.TipoEntidad)='CL') AND ((Credenciales_rst.AccesoCli)='{nc.AccesoCli}'));"
+
+						Cons = New OleDb.OleDbConnection
+
+						Cons.ConnectionString = strConexion
+						Cons.Open()
+
+						Dim cmd As New OleDbCommand(strCad, Cons)
+
+						Dim i As Long
+						i = cmd.ExecuteNonQuery()
+						Cons.Close()
+						Cons = Nothing
+
+
+
+
+					Else
+						nc.IdCredencial = -1
 					nc.Email = cdt.Rows(0).Item("Email")
 					nc.Password = "BAD_PASSWORD"
 				End If
@@ -1157,7 +1223,11 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 			Try
 
-				Dim strCad As String = "UPDATE Credenciales_rst Set Credenciales_rst.codigoActivacion = Null, Credenciales_rst.Activada = True " &
+				Dim strFecha As String
+				Dim dtFecha As Date = Date.Now().ToLocalTime()
+				strFecha = $"{dtFecha.Month}/{dtFecha.Day}/{dtFecha.Year} {dtFecha.Hour}:{dtFecha.Minute}:{dtFecha.Second}"
+
+				Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.codigoActivacion = Null, Credenciales_rst.Activada = True, Credenciales_rst.FechaActivacion = #{strFecha}# " &
 										$"WHERE (((Credenciales_rst.TipoEntidad)='CL') AND ((Credenciales_rst.AccesoCli)='{candidato}') AND ((Credenciales_rst.codigoActivacion)='{codigo}'));"
 
 				Cons = New OleDb.OleDbConnection
@@ -1273,11 +1343,12 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
 				Dim passBase64 As String = Convert.ToBase64String(bytHash)
 				codCliente = cdt.Rows(0).Item("accesoCli")
+
 				'vamos a intentar guardar la contraseña en la base de datos
 
 
 				Try
-					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}',  Credenciales_rst.[codigoActivacion] = '{codActivacion}', Credenciales_rst.[Activada] = False " &
+					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}',  Credenciales_rst.[codigoActivacion] = '{codActivacion}', Credenciales_rst.[Activada] = False, Credenciales_rst.FechaActivacion = Null " &
 											$"WHERE(((Credenciales_rst.email) = '{Username}'));"
 
 
@@ -1497,32 +1568,42 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 			'vamos a intentar guardar la contraseña en la base de datos
 
+			If IsNothing(lan) Then
+				lan = "ES"
+			End If
+
+			Dim strFecha As String
+			Dim dtFecha As Date = Date.Now().ToLocalTime()
+			strFecha = $"{dtFecha.Month}/{dtFecha.Day}/{dtFecha.Year} {dtFecha.Hour}:{dtFecha.Minute}:{dtFecha.Second}"
 
 			Try
-				Dim strCad As String = "INSERT INTO Credenciales_rst ( TipoEntidad, NombreUsuario, Salt, [Password], AccesoCli, AccesoRep, email, Idioma, Activada, codigoActivacion ) " &
-										   $"SELECT 'CL' AS te, '{nc}' AS nc, '{passwordHash}' AS sa, '{passBase64}' AS pa, '{CodCliente}' AS ac, '*' AS ar, '{Username}' AS email, '{lan.ToUpper()}' AS lan, False AS act, '{codigoActivacion}' as codigoActivacion;"
+				Dim strCad As String
+
+				strCad = "INSERT INTO Credenciales_rst ( TipoEntidad, NombreUsuario, Salt, [Password], AccesoCli, AccesoRep, email, Idioma, Activada, codigoActivacion, FechaAlta ) " &
+										   $"SELECT 'CL' AS te, '{nc}' AS nc, '{passwordHash}' AS sa, '{passBase64}' AS pa, '{CodCliente}' AS ac, '*' AS ar, '{Username}' AS email, '{lan.ToUpper()}' AS lan, False AS act, '{codigoActivacion}' as codigoActivacion, #{strFecha}# As FechaAlta ;"
+
 
 
 				Cons = New OleDb.OleDbConnection
 
-				Cons.ConnectionString = strConexion
-				Cons.Open()
+					Cons.ConnectionString = strConexion
+					Cons.Open()
 
-				Dim cmd As New OleDbCommand(strCad, Cons)
+					Dim cmd As New OleDbCommand(strCad, Cons)
 
-				Dim i As Long
-				i = cmd.ExecuteNonQuery()
+					Dim i As Long
+				i = cmd.ExecuteNonQuery
 				Cons.Close()
-				Cons = Nothing
+					Cons = Nothing
 
 
-			Catch ex As Exception
-				Return "CREDENTIAL_FAILED"
-			End Try
+				Catch ex As Exception
+					Return "CREDENTIAL_FAILED"
+				End Try
 
 
-			Return codigoActivacion
-		End If
+				Return codigoActivacion
+			End If
 
 
 
