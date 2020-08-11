@@ -58,6 +58,34 @@ Namespace Controllers
 
 		End Function
 		<HttpPost>
+		<Route("changePass")>
+		Public Function changePass(npr As newPasswordRequest) As IHttpActionResult
+			If npr Is Nothing Then
+				Throw New HttpResponseException(HttpStatusCode.BadRequest)
+			End If
+
+			Dim Login As New LoginRequest
+			Login.username = npr.UserName
+			Login.password = npr.Password
+
+			Dim cr As Credencial = VerificarCredenciales(Login)
+			Dim isCredentialValid As Boolean = (cr.IdCredencial <> -1)
+
+			If isCredentialValid Then
+				Dim strResultado = CambiarPassword(npr.UserName, npr.Password, npr.NewPass)
+
+				Return Ok(strResultado)
+
+
+			Else
+
+				Return Ok(npr.Password)
+				'Return Content(HttpStatusCode.Unauthorized, cr.Password) 'cr.password contiene el mansaje de error
+
+			End If
+
+		End Function
+		<HttpPost>
 		<Route("register")>
 		Public Function Register(candidato As RegisterRequest) As IHttpActionResult
 			Dim strResultado As String
@@ -143,5 +171,13 @@ Namespace Controllers
 			Return qj.VerificarActivacion(candidato:=candidato.cli, codigo:=candidato.cod, lan:=candidato.lan)
 
 		End Function
+
+		Private Function CambiarPassword(usuario As String, pass As String, newpass As String) As String
+			Dim qj As New QueryJson()
+
+			Return qj.CambiarPassword(usuario:=usuario, pass:=pass, newpass:=newpass)
+
+		End Function
+
 	End Class
 End Namespace

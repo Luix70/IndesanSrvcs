@@ -1102,6 +1102,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					nc.AccesoRep = cdt.Rows(0).Item("AccesoRep")
 					nc.Email = cdt.Rows(0).Item("Email")
 					nc.Idioma = cdt.Rows(0).Item("Idioma")
+					nc.VerPrecios = cdt.Rows(0).Item("verPrecios")
 
 					If cdt.Rows(0).Item("verPedidos") = True Then
 						nc.AccesoDocumentos.Add("1")
@@ -1437,7 +1438,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		msg.From = New MailAddress(SMTP_USER)
 		msg.To.Add(New MailAddress(Username))
-		'msg.To.Add(New MailAddress("compras@indesan.com"))
+		msg.To.Add(New MailAddress("webmaster@indesan.com"))
 
 		Dim intLan As Long
 		Select Case lan.ToUpper()
@@ -1756,6 +1757,71 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 	End Function
 
+	Public Function CambiarPassword(usuario As String, pass As String, newpass As String) As String
+		'Comprobar que si credencial no existe ya.
+		Dim strConsulta As String
+		Dim cdt As New DataTable
+		Dim Cons As New OleDb.OleDbConnection
+
+		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion " &
+						"From Credenciales_rst " &
+						"Where (((Credenciales_rst.email) = '" & usuario & "'));"
+
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		Using dad As New OleDb.OleDbDataAdapter(strConsulta, Cons)
+
+			dad.Fill(cdt)
+
+
+
+
+
+
+			' 1.- Si existe daremos al usuario al opcion de recuperar contraseña
+			If cdt.Rows.Count = 1 Then
+				Dim passwordHash As String = CreateSalt(24) 'importante que sea 24 o cualquier numero de bytes qye no genere un padding (= ó ==)
+
+				Dim hashAlg As HashAlgorithm = New SHA256CryptoServiceProvider()
+				Dim bytValue As Byte() = System.Text.Encoding.UTF8.GetBytes(passwordHash & "." & newpass)
+				Dim bytHash As Byte() = hashAlg.ComputeHash(bytValue)
+				Dim passBase64 As String = Convert.ToBase64String(bytHash)
+
+
+
+				Try
+					Dim strCad As String
+
+					strCad = $"UPDATE Credenciales_rst Set Credenciales_rst.Salt = '{passwordHash}', Credenciales_rst.[Password] = '{passBase64}' " &
+								$"WHERE(((Credenciales_rst.email) = '{usuario}'));"
+
+
+					Dim cmd As New OleDbCommand(strCad, Cons)
+
+					Dim i As Long
+					i = cmd.ExecuteNonQuery
+
+					If i = 1 Then Return newpass
+
+
+				Catch ex As Exception
+					Return pass
+				End Try
+
+
+
+				Return newpass
+			Else
+				Return pass
+			End If
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+	End Function
 End Class
 
 
