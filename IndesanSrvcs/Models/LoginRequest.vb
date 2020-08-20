@@ -21,6 +21,59 @@ Namespace Models
 			End Set
 		End Property
 	End Class
+	Public Class newPasswordRequest
+		Private userName_ As String
+		Private password_ As String
+		Private newPassword_ As String
+		Private confirmNewPassword_ As String
+		Private lan_ As String
+
+
+		Public Property UserName As String
+			Get
+				Return userName_
+			End Get
+			Set(value As String)
+				userName_ = value
+			End Set
+		End Property
+
+		Public Property Password As String
+			Get
+				Return password_
+			End Get
+			Set(value As String)
+				password_ = value
+			End Set
+		End Property
+
+		Public Property NewPass As String
+			Get
+				Return newPassword_
+			End Get
+			Set(value As String)
+				newPassword_ = value
+			End Set
+		End Property
+
+		Public Property ConfirmPass As String
+			Get
+				Return confirmNewPassword_
+			End Get
+			Set(value As String)
+				confirmNewPassword_ = value
+			End Set
+		End Property
+
+		Public Property Lan As String
+			Get
+				Return Lan_
+			End Get
+			Set(value As String)
+				lan_ = value
+			End Set
+		End Property
+	End Class
 	Public Class RegisterRequest
 		Private newUsername As String
 		Private newPassword As String
@@ -102,6 +155,10 @@ Namespace Models
 		Private AccesoRep_ As String
 		Private Email_ As String
 		Private Idioma_ As String
+		Private verPrecios_ As Boolean
+
+		Private AccesoDocumentos_ As New Collection
+
 
 		Public Property IdCredencial As Long
 			Get
@@ -172,6 +229,24 @@ Namespace Models
 			End Get
 			Set(value As String)
 				Idioma_ = value
+			End Set
+		End Property
+
+		Public Property AccesoDocumentos As Collection
+			Get
+				Return AccesoDocumentos_
+			End Get
+			Set(value As Collection)
+				AccesoDocumentos_ = value
+			End Set
+		End Property
+
+		Public Property VerPrecios As Boolean
+			Get
+				Return verPrecios_
+			End Get
+			Set(value As Boolean)
+				verPrecios_ = value
 			End Set
 		End Property
 	End Class
