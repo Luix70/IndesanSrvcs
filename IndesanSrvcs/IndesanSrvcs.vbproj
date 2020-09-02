@@ -149,6 +149,7 @@
     <Compile Include="App_Start\WebApiConfig.vb" />
     <Compile Include="Controllers\CustomersController.vb" />
     <Compile Include="Controllers\LoginController.vb" />
+    <Compile Include="Controllers\OfertasController.vb" />
     <Compile Include="Controllers\TokenGenerator.vb" />
     <Compile Include="Controllers\TokenValidationHandler.vb" />
     <Compile Include="Global.asax.vb">

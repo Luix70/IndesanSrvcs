@@ -3,6 +3,7 @@ Imports System.Web.Http
 Imports System.Web.Script.Serialization
 Imports Microsoft.IdentityModel.Tokens
 
+
 Namespace Controllers
 	<Authorize>
 	<RoutePrefix("api/customers")>
@@ -37,51 +38,6 @@ Namespace Controllers
 
 
 		End Function
-		Public Function LifetimeValidator(ByVal notBefore As DateTime?, ByVal expires As DateTime?, ByVal securityToken As SecurityToken, ByVal validationParameters As TokenValidationParameters) As Boolean
-			If (Not (expires) Is Nothing) Then
-				If (DateTime.UtcNow < expires) Then
-					Return True
-				End If
 
-			End If
-
-			Return False
-		End Function
-
-		Public Function ExtraerToken() As JwtSecurityToken
-			Try
-				Dim token As String = HttpContext.Current.Request.Headers("Authorization").Substring(7)
-				Dim tokenHandler As New JwtSecurityTokenHandler()
-				Dim jwToken As JwtSecurityToken = tokenHandler.ReadJwtToken(token)
-				If jwToken Is Nothing Then
-					Return New JwtSecurityToken()
-				End If
-
-				Dim secretKey = ConfigurationManager.AppSettings("JWT_SECRET_KEY")
-				Dim audienceToken = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
-				Dim issuerToken = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
-				Dim securityKey = New SymmetricSecurityKey(System.Text.Encoding.Default.GetBytes(secretKey))
-				Dim securityToken As JwtSecurityToken = Nothing
-
-				Dim validationParameters As New TokenValidationParameters() With {
-						.ValidAudience = audienceToken,
-						.ValidIssuer = issuerToken,
-						.ValidateLifetime = True,
-						.ValidateIssuerSigningKey = True,
-						.LifetimeValidator = AddressOf Me.LifetimeValidator,
-						.IssuerSigningKey = securityKey
-					}
-
-				' Extract and assign Current Principal and user
-				HttpContext.Current.User = tokenHandler.ValidateToken(token, validationParameters, securityToken)
-				Return securityToken
-			Catch ex As SecurityTokenValidationException
-				Return New JwtSecurityToken()
-			Catch ex As Exception
-				Return New JwtSecurityToken()
-
-			End Try
-
-		End Function
 	End Class
 End Namespace
