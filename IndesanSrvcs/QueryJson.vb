@@ -12,12 +12,175 @@ Imports System.Data.OleDb
 Imports System.Net.Mail
 Imports System.Security.Cryptography
 Imports System.Reflection
+Imports IndesanSrvcs
 
 Public Class QueryJson
 
 	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
+
+	Private Class Literales
+		Private es_ As String
+		Private en_ As String
+		Private fr_ As String
+
+		Public Property es As String
+			Get
+				Return es_
+			End Get
+			Set(value As String)
+				es_ = value
+			End Set
+		End Property
+
+		Public Property en As String
+			Get
+				Return en_
+			End Get
+			Set(value As String)
+				en_ = value
+			End Set
+		End Property
+
+		Public Property fr As String
+			Get
+				Return fr_
+			End Get
+			Set(value As String)
+				fr_ = value
+			End Set
+		End Property
+	End Class
+	Private Class Tarifa
+
+		Private tarifa_ As String
+		Private precio_ As Single
+		Private moneda_ As String
+		Private descripcion_ As String
+
+
+		Public Property Tarifa As String
+			Get
+				Return tarifa_
+			End Get
+			Set(value As String)
+				tarifa_ = value
+			End Set
+		End Property
+
+		Public Property Precio As Single
+			Get
+				Return precio_
+			End Get
+			Set(value As Single)
+				precio_ = value
+			End Set
+		End Property
+
+		Public Property Moneda As String
+			Get
+				Return moneda_
+			End Get
+			Set(value As String)
+				moneda_ = value
+			End Set
+		End Property
+
+		Public Property Descripcion As String
+			Get
+				Return descripcion_
+			End Get
+			Set(value As String)
+				descripcion_ = value
+			End Set
+		End Property
+	End Class
+
+	Private Class Oferta
+
+		Private Id_ As Long
+		Private Cod_ As String
+		Private Desc_ As Literales
+		Private Desc2_ As Literales
+		Private Disponibles_ As Long
+		Private Imagen_ As String
+		Private Precios_ As New List(Of Tarifa)
+		Private codagrupacion_ As String
+
+		Public Property Id As Long
+			Get
+				Return Id_
+			End Get
+			Set(value As Long)
+				Id_ = value
+			End Set
+		End Property
+
+		Public Property Cod As String
+			Get
+				Return Cod_
+			End Get
+			Set(value As String)
+				Cod_ = value
+			End Set
+		End Property
+
+		Public Property Disponibles As Long
+			Get
+				Return Disponibles_
+			End Get
+			Set(value As Long)
+				Disponibles_ = value
+			End Set
+		End Property
+
+		Public Property Imagen As String
+			Get
+				Return Imagen_
+			End Get
+			Set(value As String)
+				Imagen_ = value
+			End Set
+		End Property
+
+		Public Property Desc As Literales
+			Get
+				Return Desc_
+			End Get
+			Set(value As Literales)
+				Desc_ = value
+			End Set
+		End Property
+
+		Public Property Desc2 As Literales
+			Get
+				Return Desc2_
+			End Get
+			Set(value As Literales)
+				Desc2_ = value
+			End Set
+		End Property
+
+		Public Property Precios As List(Of Tarifa)
+			Get
+				Return Precios_
+			End Get
+			Set(value As List(Of Tarifa))
+				Precios_ = value
+			End Set
+		End Property
+
+		Public Property Codagrupacion As String
+			Get
+				Return codagrupacion_
+			End Get
+			Set(value As String)
+				codagrupacion_ = value
+			End Set
+		End Property
+	End Class
+
 	Private Class Resultado
 		Public consulta As String
 		Public FechaConsulta As String
@@ -1147,29 +1310,29 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					'Actualizamos la fecha del ultimo acceso
 
 					Dim strFecha As String
-						Dim dtFecha As Date = Date.Now().ToLocalTime()
-						strFecha = $"{dtFecha.Month}/{dtFecha.Day}/{dtFecha.Year} {dtFecha.Hour}:{dtFecha.Minute}:{dtFecha.Second}"
+					Dim dtFecha As Date = Date.Now().ToLocalTime()
+					strFecha = $"{dtFecha.Month}/{dtFecha.Day}/{dtFecha.Year} {dtFecha.Hour}:{dtFecha.Minute}:{dtFecha.Second}"
 
-						Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.FechaUltimoAcceso = #{strFecha}# " &
+					Dim strCad As String = $"UPDATE Credenciales_rst Set Credenciales_rst.FechaUltimoAcceso = #{strFecha}# " &
 												$"WHERE (((Credenciales_rst.TipoEntidad)='CL') AND ((Credenciales_rst.AccesoCli)='{nc.AccesoCli}'));"
 
-						Cons = New OleDb.OleDbConnection
+					Cons = New OleDb.OleDbConnection
 
-						Cons.ConnectionString = strConexion
-						Cons.Open()
+					Cons.ConnectionString = strConexion
+					Cons.Open()
 
-						Dim cmd As New OleDbCommand(strCad, Cons)
+					Dim cmd As New OleDbCommand(strCad, Cons)
 
-						Dim i As Long
-						i = cmd.ExecuteNonQuery()
-						Cons.Close()
-						Cons = Nothing
-
-
+					Dim i As Long
+					i = cmd.ExecuteNonQuery()
+					Cons.Close()
+					Cons = Nothing
 
 
-					Else
-						nc.IdCredencial = -1
+
+
+				Else
+					nc.IdCredencial = -1
 					nc.Email = cdt.Rows(0).Item("Email")
 					nc.Password = "BAD_PASSWORD"
 				End If
@@ -1587,24 +1750,24 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 				Cons = New OleDb.OleDbConnection
 
-					Cons.ConnectionString = strConexion
-					Cons.Open()
+				Cons.ConnectionString = strConexion
+				Cons.Open()
 
-					Dim cmd As New OleDbCommand(strCad, Cons)
+				Dim cmd As New OleDbCommand(strCad, Cons)
 
-					Dim i As Long
+				Dim i As Long
 				i = cmd.ExecuteNonQuery
 				Cons.Close()
-					Cons = Nothing
+				Cons = Nothing
 
 
-				Catch ex As Exception
-					Return "CREDENTIAL_FAILED"
-				End Try
+			Catch ex As Exception
+				Return "CREDENTIAL_FAILED"
+			End Try
 
 
-				Return codigoActivacion
-			End If
+			Return codigoActivacion
+		End If
 
 
 
@@ -1822,6 +1985,104 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 	End Function
+
+	Public Function ObtenerOfertas() As String
+
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+		Dim js As JavaScriptSerializer
+		js = New JavaScriptSerializer()
+		js.MaxJsonLength = 100000000
+
+		Dim strCadenaConsulta As String
+
+		strCadenaConsulta = "SELECT * FROM OfertasTarifas;"
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+		Dim res As New List(Of Oferta)
+
+		Dim curID As Long = -1
+		Dim totalOfertas As Long = 0
+		Dim ofertaActual As Oferta
+		Dim totalPrecios As Long = 0
+		Dim precios As New List(Of Tarifa)
+
+		For Each row As DataRow In dt.Rows
+
+			If row.Item("id") <> curID Then
+				totalOfertas += 1
+				ofertaActual = New Oferta
+
+				res.Add(ofertaActual)
+
+				precios = New List(Of Tarifa)
+
+				curID = row.Item("id")
+
+				With ofertaActual
+
+					.Id = curID
+					.Cod = row.Item("cod")
+					.Disponibles = row.Item("disponibles")
+					.Imagen = row.Item("imagen")
+					.Codagrupacion = row.Item("codagrupacion")
+					.Desc = New Literales With {
+						.es = row.Item("desc_es"),
+						.en = row.Item("desc_en"),
+						.fr = row.Item("desc_fr")
+					}
+					.Desc2 = New Literales With {
+						.es = row.Item("desc2_es"),
+						.en = row.Item("desc2_en"),
+						.fr = row.Item("desc2_fr")
+					}
+
+					.Precios = precios
+
+				End With
+			End If
+
+			totalPrecios += 1
+
+			Dim precioActual As New Tarifa
+			precios.Add(precioActual)
+
+			With precioActual
+				.Tarifa = row.Item("CodTarifa")
+				.Moneda = row.Item("Moneda")
+				.Precio = row.Item("Precio")
+				.Descripcion = row.Item("Descripcion")
+
+			End With
+
+		Next
+
+
+		Json = js.Serialize(res)
+		Return Json
+
+
+	End Function
+
 End Class
 
 

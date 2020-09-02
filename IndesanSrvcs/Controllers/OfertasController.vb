@@ -21,9 +21,7 @@ Namespace Ofertas
 
 			Dim resultados As String
 
-			'resultados = qj.ObtenerDocs(jwt.Payload("AccesoRep"), jwt.Payload("AccesoCli"), jwt.Payload("TipoEntidad"))
-
-			resultados = $"Estas son mis ofertas, {jwt.Payload("AccesoRep")}, {jwt.Payload("AccesoCli")}, {jwt.Payload("TipoEntidad")} "
+			resultados = qj.ObtenerOfertas()
 
 			Return Ok(resultados)
 
