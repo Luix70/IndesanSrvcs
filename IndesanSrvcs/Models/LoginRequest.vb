@@ -156,6 +156,9 @@ Namespace Models
 		Private Email_ As String
 		Private Idioma_ As String
 		Private verPrecios_ As Boolean
+		Private Tarifa_ As String
+		Private TarifaP_ As String
+
 
 		Private AccesoDocumentos_ As New Collection
 
@@ -247,6 +250,24 @@ Namespace Models
 			End Get
 			Set(value As Boolean)
 				verPrecios_ = value
+			End Set
+		End Property
+
+		Public Property Tarifa As String
+			Get
+				Return Tarifa_
+			End Get
+			Set(value As String)
+				Tarifa_ = value
+			End Set
+		End Property
+
+		Public Property TarifaP As String
+			Get
+				Return TarifaP_
+			End Get
+			Set(value As String)
+				TarifaP_ = value
 			End Set
 		End Property
 	End Class

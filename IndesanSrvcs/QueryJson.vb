@@ -1266,6 +1266,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					nc.Email = cdt.Rows(0).Item("Email")
 					nc.Idioma = cdt.Rows(0).Item("Idioma")
 					nc.VerPrecios = cdt.Rows(0).Item("verPrecios")
+					nc.Tarifa = cdt.Rows(0).Item("Tarifa")
+					nc.TarifaP = cdt.Rows(0).Item("TarifaP")
 
 					If cdt.Rows(0).Item("verPedidos") = True Then
 						nc.AccesoDocumentos.Add("1")
@@ -1425,7 +1427,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
 
-		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif, Clientes_rst.codigo , Clientes_rst.rzs, Clientes_rst.nombrecomercial FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "' AND  (Clientes_rst.Activo = False) ));"
+		strConsulta = "SELECT Clientes_rst.email, Clientes_rst.cif, Clientes_rst.codigo , Clientes_rst.rzs, Clientes_rst.nombrecomercial, Clientes_rst.tarifa FROM Clientes_rst WHERE (((Clientes_rst.cif)='" & Cif & "' AND  (Clientes_rst.Activo = False) ));"
 		Cons.ConnectionString = strConexion
 		Cons.Open()
 
@@ -1446,12 +1448,14 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					Dim CodCliente As String = cdt.Rows(0).Item("codigo")
 					Dim rzs As String = cdt.Rows(0).Item("rzs")
 					Dim nc As String = rzs
+					Dim tar As String = cdt.Rows(0).Item("Tarifa")
+
 					If Not IsDBNull(cdt.Rows(0).Item("nombrecomercial")) Then
 						nc = cdt.Rows(0).Item("nombrecomercial")
 					End If
 
 					Dim status As String
-					status = NuevaCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan)
+					status = NuevaCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan, tar)
 
 					Return status
 				Else
@@ -1553,9 +1557,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 
-	Function NuevaCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
+	Function NuevaCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String, tarifa As String) As String
 
-		Dim strCodigoTemporal As String = GeneraRegistroCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan)
+		Dim strCodigoTemporal As String = GeneraRegistroCredencial(Username, Cif, Password, CodCliente, rzs, nc, lan, tarifa)
 
 		If (strCodigoTemporal = "CREDENTIAL_FAILED" Or strCodigoTemporal = "CREDENTIAL_EXISTS_ACTIVATED") Then
 
@@ -1687,14 +1691,14 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Return "EMAIL_FAILED"
 		End Try
 	End Function
-	Private Function GeneraRegistroCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String) As String
+	Private Function GeneraRegistroCredencial(Username As String, Cif As String, Password As String, CodCliente As String, rzs As String, nc As String, lan As String, tarifa As String) As String
 
 		'Comprobar que si credencial no existe ya.
 		Dim strConsulta As String
 		Dim cdt As New DataTable
 		Dim Cons As New OleDb.OleDbConnection
 
-		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion " &
+		strConsulta = "SELECT Credenciales_rst.NombreUsuario, Credenciales_rst.email, Credenciales_rst.Password, Credenciales_rst.TipoEntidad, Credenciales_rst.AccesoCli, Credenciales_rst.AccesoRep, Credenciales_rst.Idioma, Credenciales_rst.salt, Credenciales_rst.Activada , Credenciales_rst.codigoActivacion , Credenciales_rst.Tarifa, Credenciales_rst.TarifaP " &
 						"From Credenciales_rst " &
 						"Where (((Credenciales_rst.email) = '" & Username & "'));"
 
@@ -1743,8 +1747,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			Try
 				Dim strCad As String
 
-				strCad = "INSERT INTO Credenciales_rst ( TipoEntidad, NombreUsuario, Salt, [Password], AccesoCli, AccesoRep, email, Idioma, Activada, codigoActivacion, FechaAlta ) " &
-										   $"SELECT 'CL' AS te, '{nc}' AS nc, '{passwordHash}' AS sa, '{passBase64}' AS pa, '{CodCliente}' AS ac, '*' AS ar, '{Username}' AS email, '{lan.ToUpper()}' AS lan, False AS act, '{codigoActivacion}' as codigoActivacion, #{strFecha}# As FechaAlta ;"
+				strCad = "INSERT INTO Credenciales_rst ( TipoEntidad, NombreUsuario, Salt, [Password], AccesoCli, AccesoRep, email, Idioma, Activada, codigoActivacion, FechaAlta, Tarifa, TarifaP ) " &
+										   $"SELECT 'CL' AS te, '{nc}' AS nc, '{passwordHash}' AS sa, '{passBase64}' AS pa, '{CodCliente}' AS ac, '*' AS ar, '{Username}' AS email, '{lan.ToUpper()}' AS lan, False AS act, '{codigoActivacion}' as codigoActivacion, #{strFecha}# As FechaAlta, '{tarifa}' as Tarifa, '{tarifa & "P" }' as TarifaP  ;"
 
 
 
