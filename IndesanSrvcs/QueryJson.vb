@@ -106,7 +106,9 @@ Public Class QueryJson
 		Private Disponibles_ As Long
 		Private Imagen_ As String
 		Private Precios_ As New List(Of Tarifa)
-		Private codagrupacion_ As String
+		Private Codagrupacion_ As String
+		Private Reservadas_ As Long
+
 
 		Public Property Id As Long
 			Get
@@ -177,6 +179,15 @@ Public Class QueryJson
 			End Get
 			Set(value As String)
 				codagrupacion_ = value
+			End Set
+		End Property
+
+		Public Property Reservadas As Long
+			Get
+				Return Reservadas_
+			End Get
+			Set(value As Long)
+				Reservadas_ = value
 			End Set
 		End Property
 	End Class
