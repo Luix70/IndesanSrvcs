@@ -2097,7 +2097,103 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 	End Function
+	Public Function CustData(cliente As String) As String
 
+		Return "{""codCliente"": """ & cliente & """}"
+
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+		Dim js As JavaScriptSerializer
+		js = New JavaScriptSerializer()
+		js.MaxJsonLength = 100000000
+
+		Dim strCadenaConsulta As String
+
+		strCadenaConsulta = "SELECT * FROM OfertasTarifas;"
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+		Dim res As New List(Of Oferta)
+
+		Dim curID As Long = -1
+		Dim totalOfertas As Long = 0
+		Dim ofertaActual As Oferta
+		Dim totalPrecios As Long = 0
+		Dim precios As New List(Of Tarifa)
+
+		For Each row As DataRow In dt.Rows
+
+			If row.Item("id") <> curID Then
+				totalOfertas += 1
+				ofertaActual = New Oferta
+
+				res.Add(ofertaActual)
+
+				precios = New List(Of Tarifa)
+
+				curID = row.Item("id")
+
+				With ofertaActual
+
+					.Id = curID
+					.Cod = row.Item("cod")
+					.Disponibles = row.Item("disponibles")
+					.Imagen = row.Item("imagen")
+					.Codagrupacion = row.Item("codagrupacion")
+					.Desc = New Literales With {
+						.es = row.Item("desc_es"),
+						.en = row.Item("desc_en"),
+						.fr = row.Item("desc_fr")
+					}
+					.Desc2 = New Literales With {
+						.es = row.Item("desc2_es"),
+						.en = row.Item("desc2_en"),
+						.fr = row.Item("desc2_fr")
+					}
+
+					.Precios = precios
+
+				End With
+			End If
+
+			totalPrecios += 1
+
+			Dim precioActual As New Tarifa
+			precios.Add(precioActual)
+
+			With precioActual
+				.Tarifa = row.Item("CodTarifa")
+				.Moneda = row.Item("Moneda")
+				.Precio = row.Item("Precio")
+				.Descripcion = row.Item("Descripcion")
+
+			End With
+
+		Next
+
+
+		Json = js.Serialize(res)
+		Return Json
+
+	End Function
 End Class
 
 
