@@ -388,8 +388,6 @@ Public Class QueryJson
 		Public poblacion As String
 		Public documentos As New Collection
 		Public totalDocumentos As Integer
-
-
 		Function obtenerDocumentos(codigo As String) As Integer
 
 			Dim n_documentos As Integer = 0
@@ -437,8 +435,252 @@ Public Class QueryJson
 			Return n_documentos
 
 		End Function
+	End Class
+
+	Private Class ClienteCarrito
+
+		Private codCliente_ As String
+		Private rzs_ As String
+		Private nombrecomercial_ As String
+		Private cif_ As String
+		Private Direccion_predet_ As Long
+		Private FormaPago_ As String
+
+		Private DirFacturacion_ As Direccion
+		Private DireccionesEnvio_ As List(Of Direccion)
+		Public Sub New()
+
+		End Sub
+
+		Public Sub New(codCliente As String, rzs As String, nombrecomercial As String, cif As String, direccion_predet As Long, formaPago As String, dirFacturacion As Direccion, direccionesEnvio As List(Of Direccion))
+			Me.CodCliente = codCliente
+			Me.Rzs = rzs
+			Me.Nombrecomercial = nombrecomercial
+			Me.Cif = cif
+			Me.Direccion_predet = direccion_predet
+			Me.FormaPago = formaPago
+			Me.DirFacturacion = dirFacturacion
+			Me.DireccionesEnvio = direccionesEnvio
+		End Sub
+
+		Public Property CodCliente As String
+			Get
+				Return codCliente_
+			End Get
+			Set(value As String)
+				codCliente_ = value
+			End Set
+		End Property
+
+		Public Property Rzs As String
+			Get
+				Return rzs_
+			End Get
+			Set(value As String)
+				rzs_ = value
+			End Set
+		End Property
+
+		Public Property Nombrecomercial As String
+			Get
+				Return nombrecomercial_
+			End Get
+			Set(value As String)
+				nombrecomercial_ = value
+			End Set
+		End Property
+
+		Public Property Cif As String
+			Get
+				Return cif_
+			End Get
+			Set(value As String)
+				cif_ = value
+			End Set
+		End Property
+
+		Public Property Direccion_predet As Long
+			Get
+				Return Direccion_predet_
+			End Get
+			Set(value As Long)
+				Direccion_predet_ = value
+			End Set
+		End Property
+
+		Public Property FormaPago As String
+			Get
+				Return FormaPago_
+			End Get
+			Set(value As String)
+				FormaPago_ = value
+			End Set
+		End Property
+
+		Private Property DirFacturacion As Direccion
+			Get
+				Return DirFacturacion_
+			End Get
+			Set(value As Direccion)
+				DirFacturacion_ = value
+			End Set
+		End Property
+
+		Private Property DireccionesEnvio As List(Of Direccion)
+			Get
+				Return DireccionesEnvio_
+			End Get
+			Set(value As List(Of Direccion))
+				DireccionesEnvio_ = value
+			End Set
+		End Property
 
 	End Class
+	Private Class Direccion
+			Private codigo_ As String
+			Private codsucursal_ As Long
+			Private NombreSucursal_ As String
+			Private direccion_ As String
+			Private codpostal_ As String
+			Private poblacion_ As String
+			Private provincia_ As String
+			Private telef_ As String
+			Private email_ As String
+			Private Observaciones_ As String
+			Private demora_Agencia_ As Long
+			Private Agencia_ As String
+			Public Sub New()
+
+			End Sub
+
+		Public Sub New(codigo As String, codsucursal As Long, nombreSucursal As String, direccion As String, codpostal As String, poblacion As String, provincia As String, telef As String, email As String, observaciones As String, demora_Agencia As Long, agencia As String)
+			Me.Codigo = codigo
+			Me.Codsucursal = codsucursal
+			Me.NombreSucursal = nombreSucursal
+			Me.Direccion = direccion
+			Me.Codpostal = codpostal
+			Me.Poblacion = poblacion
+			Me.Provincia = provincia
+			Me.Telef = telef
+			Me.Email = email
+			Me.Observaciones = observaciones
+			Me.Demora_Agencia = demora_Agencia
+			Me.Agencia = agencia
+		End Sub
+
+		Public Property Codigo As String
+				Get
+					Return codigo_
+				End Get
+				Set(value As String)
+					codigo_ = value
+				End Set
+			End Property
+
+			Public Property Codsucursal As Long
+				Get
+					Return codsucursal_
+				End Get
+				Set(value As Long)
+					codsucursal_ = value
+				End Set
+			End Property
+
+			Public Property NombreSucursal As String
+				Get
+					Return NombreSucursal_
+				End Get
+				Set(value As String)
+					NombreSucursal_ = value
+				End Set
+			End Property
+
+			Public Property Direccion As String
+				Get
+					Return direccion_
+				End Get
+				Set(value As String)
+					direccion_ = value
+				End Set
+			End Property
+
+			Public Property Codpostal As String
+				Get
+					Return codpostal_
+				End Get
+				Set(value As String)
+					codpostal_ = value
+				End Set
+			End Property
+
+			Public Property Poblacion As String
+				Get
+					Return poblacion_
+				End Get
+				Set(value As String)
+					poblacion_ = value
+				End Set
+			End Property
+
+			Public Property Provincia As String
+				Get
+					Return provincia_
+				End Get
+				Set(value As String)
+					provincia_ = value
+				End Set
+			End Property
+
+			Public Property Telef As String
+				Get
+					Return telef_
+				End Get
+				Set(value As String)
+					telef_ = value
+				End Set
+			End Property
+
+			Public Property Email As String
+				Get
+					Return email_
+				End Get
+				Set(value As String)
+					email_ = value
+				End Set
+			End Property
+
+			Public Property Observaciones As String
+				Get
+					Return Observaciones_
+				End Get
+				Set(value As String)
+					Observaciones_ = value
+				End Set
+			End Property
+
+			Public Property Demora_Agencia As Long
+				Get
+					Return demora_Agencia_
+				End Get
+				Set(value As Long)
+					demora_Agencia_ = value
+				End Set
+			End Property
+
+			Public Property Agencia As String
+				Get
+					Return Agencia_
+				End Get
+				Set(value As String)
+					Agencia_ = value
+				End Set
+			End Property
+
+
+		End Class
+
+
+
 
 	Private Class Documento
 		Public tipodoc As String
@@ -2099,7 +2341,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 	End Function
 	Public Function CustData(cliente As String) As String
 
-		Return "{""codCliente"": """ & cliente & """}"
+		'Return "{""codCliente"": """ & cliente & """}"
 
 		Dim Json As String = ""
 		Dim culture As New CultureInfo("en-US")
@@ -2110,7 +2352,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Dim strCadenaConsulta As String
 
-		strCadenaConsulta = "SELECT * FROM OfertasTarifas;"
+		strCadenaConsulta = $"SELECT * FROM ClientesCarrito WHERE codCliente = '{cliente}';"
 		Dim Cons As New OleDb.OleDbConnection
 		Cons.ConnectionString = strConexion
 		Cons.Open()
@@ -2131,70 +2373,96 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons.Close()
 		Cons = Nothing
 
-		Dim res As New List(Of Oferta)
-
-		Dim curID As Long = -1
-		Dim totalOfertas As Long = 0
-		Dim ofertaActual As Oferta
-		Dim totalPrecios As Long = 0
-		Dim precios As New List(Of Tarifa)
-
-		For Each row As DataRow In dt.Rows
-
-			If row.Item("id") <> curID Then
-				totalOfertas += 1
-				ofertaActual = New Oferta
-
-				res.Add(ofertaActual)
-
-				precios = New List(Of Tarifa)
-
-				curID = row.Item("id")
-
-				With ofertaActual
-
-					.Id = curID
-					.Cod = row.Item("cod")
-					.Disponibles = row.Item("disponibles")
-					.Imagen = row.Item("imagen")
-					.Codagrupacion = row.Item("codagrupacion")
-					.Desc = New Literales With {
-						.es = row.Item("desc_es"),
-						.en = row.Item("desc_en"),
-						.fr = row.Item("desc_fr")
-					}
-					.Desc2 = New Literales With {
-						.es = row.Item("desc2_es"),
-						.en = row.Item("desc2_en"),
-						.fr = row.Item("desc2_fr")
-					}
-
-					.Precios = precios
-
-				End With
-			End If
-
-			totalPrecios += 1
-
-			Dim precioActual As New Tarifa
-			precios.Add(precioActual)
-
-			With precioActual
-				.Tarifa = row.Item("CodTarifa")
-				.Moneda = row.Item("Moneda")
-				.Precio = row.Item("Precio")
-				.Descripcion = row.Item("Descripcion")
-
-			End With
-
-		Next
 
 
-		Json = js.Serialize(res)
+		Dim CodCliente As String = dt.Rows(0).Item("CodCliente")
+		Dim rzs As String = dt.Rows(0).Item("rzs")
+		Dim nombrecomercial As String = dt.Rows(0).Item("nombrecomercial")
+		Dim cif As String = dt.Rows(0).Item("cif")
+		Dim direccion_predet As String = dt.Rows(0).Item("direccion_predet")
+		Dim formaPago As String = dt.Rows(0).Item("cif")
+
+		'Dieccion principal
+		Dim codigo As String = dt.Rows(0).Item("CodCliente")
+		Dim codsucursal As Long = dt.Rows(0).Item("codsucursal")
+		Dim nombreSucursal As String = dt.Rows(0).Item("NombreSucursal")
+		Dim dire As String = dt.Rows(0).Item("direccion")
+		Dim codpostal As String = dt.Rows(0).Item("codpostal")
+		Dim poblacion As String = dt.Rows(0).Item("pobsuc")
+		Dim provincia As String = dt.Rows(0).Item("CodCliente")
+		Dim telef As String = dt.Rows(0).Item("telefsuc")
+		Dim email As String = dt.Rows(0).Item("e-mail")
+		Dim observaciones As String = dt.Rows(0).Item("Observaciones")
+		Dim demora_Agencia As Long = dt.Rows(0).Item("Demora_agencia")
+		Dim agencia As String = dt.Rows(0).Item("Agencia")
+
+
+		Dim dirfacturacion As New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia)
+
+		Dim direccionesEnvio As New List(Of Direccion)
+
+		Dim ccar As New ClienteCarrito(codCliente:=CodCliente, rzs:=rzs, nombrecomercial:=nombrecomercial, cif:=cif, direccion_predet:=direccion_predet, formaPago:=formapago, dirFacturacion:=dirFacturacion, direccionesEnvio:=direccionesEnvio)
+
+
+
+
+		'For Each row As DataRow In dt.Rows
+
+		'	If row.Item("id") <> curID Then
+		'		totalOfertas += 1
+		'		ofertaActual = New Oferta
+
+		'		res.Add(ofertaActual)
+
+		'		precios = New List(Of Tarifa)
+
+		'		curID = row.Item("id")
+
+		'		With ofertaActual
+
+		'			.Id = curID
+		'			.Cod = row.Item("cod")
+		'			.Disponibles = row.Item("disponibles")
+		'			.Imagen = row.Item("imagen")
+		'			.Codagrupacion = row.Item("codagrupacion")
+		'			.Desc = New Literales With {
+		'				.es = row.Item("desc_es"),
+		'				.en = row.Item("desc_en"),
+		'				.fr = row.Item("desc_fr")
+		'			}
+		'			.Desc2 = New Literales With {
+		'				.es = row.Item("desc2_es"),
+		'				.en = row.Item("desc2_en"),
+		'				.fr = row.Item("desc2_fr")
+		'			}
+
+		'			.Precios = precios
+
+		'		End With
+		'	End If
+
+		'	totalPrecios += 1
+
+		'	Dim precioActual As New Tarifa
+		'	precios.Add(precioActual)
+
+		'	With precioActual
+		'		.Tarifa = row.Item("CodTarifa")
+		'		.Moneda = row.Item("Moneda")
+		'		.Precio = row.Item("Precio")
+		'		.Descripcion = row.Item("Descripcion")
+
+		'	End With
+
+		'Next
+
+
+		Json = js.Serialize(ccar)
 		Return Json
 
 	End Function
 End Class
+
 
 
 
