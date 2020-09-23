@@ -445,19 +445,20 @@ Public Class QueryJson
 		Private cif_ As String
 		Private Direccion_predet_ As Long
 		Private FormaPago_ As String
-
+		Private DirEnvio_ As Long
 		Private DirFacturacion_ As Direccion
 		Private DireccionesEnvio_ As List(Of Direccion)
 		Public Sub New()
 
 		End Sub
 
-		Public Sub New(codCliente As String, rzs As String, nombrecomercial As String, cif As String, direccion_predet As Long, formaPago As String, dirFacturacion As Direccion, direccionesEnvio As List(Of Direccion))
+		Public Sub New(codCliente As String, rzs As String, nombrecomercial As String, cif As String, direccion_predet As Long, dirEnvio As Long, formaPago As String, dirFacturacion As Direccion, direccionesEnvio As List(Of Direccion))
 			Me.CodCliente = codCliente
 			Me.Rzs = rzs
 			Me.Nombrecomercial = nombrecomercial
 			Me.Cif = cif
 			Me.Direccion_predet = direccion_predet
+			Me.DirEnvio = dirEnvio
 			Me.FormaPago = formaPago
 			Me.DirFacturacion = dirFacturacion
 			Me.DireccionesEnvio = direccionesEnvio
@@ -507,7 +508,14 @@ Public Class QueryJson
 				Direccion_predet_ = value
 			End Set
 		End Property
-
+		Public Property DirEnvio As Long
+			Get
+				Return DirEnvio_
+			End Get
+			Set(value As Long)
+				DirEnvio_ = value
+			End Set
+		End Property
 		Public Property FormaPago As String
 			Get
 				Return FormaPago_
@@ -517,7 +525,7 @@ Public Class QueryJson
 			End Set
 		End Property
 
-		Private Property DirFacturacion As Direccion
+		Public Property DirFacturacion As Direccion
 			Get
 				Return DirFacturacion_
 			End Get
@@ -526,7 +534,7 @@ Public Class QueryJson
 			End Set
 		End Property
 
-		Private Property DireccionesEnvio As List(Of Direccion)
+		Public Property DireccionesEnvio As List(Of Direccion)
 			Get
 				Return DireccionesEnvio_
 			End Get
@@ -534,6 +542,7 @@ Public Class QueryJson
 				DireccionesEnvio_ = value
 			End Set
 		End Property
+
 
 	End Class
 	Private Class Direccion
@@ -2377,84 +2386,93 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Dim CodCliente As String = dt.Rows(0).Item("CodCliente")
 		Dim rzs As String = dt.Rows(0).Item("rzs")
-		Dim nombrecomercial As String = dt.Rows(0).Item("nombrecomercial")
+
+		Dim nombrecomercial As String = ""
+		If Not IsDBNull(dt.Rows(0).Item("nombrecomercial")) Then
+			nombrecomercial = dt.Rows(0).Item("nombrecomercial")
+		End If
+
 		Dim cif As String = dt.Rows(0).Item("cif")
 		Dim direccion_predet As String = dt.Rows(0).Item("direccion_predet")
-		Dim formaPago As String = dt.Rows(0).Item("cif")
+		Dim direccionEnvio As String = direccion_predet
+		Dim formaPago As String = dt.Rows(0).Item("DescFormaPago")
 
-		'Dieccion principal
+		'Direccion principal
 		Dim codigo As String = dt.Rows(0).Item("CodCliente")
-		Dim codsucursal As Long = dt.Rows(0).Item("codsucursal")
-		Dim nombreSucursal As String = dt.Rows(0).Item("NombreSucursal")
-		Dim dire As String = dt.Rows(0).Item("direccion")
-		Dim codpostal As String = dt.Rows(0).Item("codpostal")
-		Dim poblacion As String = dt.Rows(0).Item("pobsuc")
-		Dim provincia As String = dt.Rows(0).Item("CodCliente")
-		Dim telef As String = dt.Rows(0).Item("telefsuc")
-		Dim email As String = dt.Rows(0).Item("e-mail")
-		Dim observaciones As String = dt.Rows(0).Item("Observaciones")
-		Dim demora_Agencia As Long = dt.Rows(0).Item("Demora_agencia")
-		Dim agencia As String = dt.Rows(0).Item("Agencia")
+		Dim codsucursal As Long = 0
+
+		Dim nombreSucursal As String = ""
+
+		Dim dire As String = dt.Rows(0).Item("direcc")
+		Dim codpostal As String = dt.Rows(0).Item("cp1")
+		Dim poblacion As String = dt.Rows(0).Item("pobrzs")
+		Dim provincia As String = dt.Rows(0).Item("provrzs")
+
+		Dim telef As String = ""
+		Dim email As String = ""
+		Dim observaciones As String = ""
+
+		If Not IsDBNull(dt.Rows(0).Item("telefrzs")) Then
+			telef = dt.Rows(0).Item("telefrzs")
+		End If
+
+		If Not IsDBNull(dt.Rows(0).Item("email")) Then
+			email = dt.Rows(0).Item("email")
+		End If
+
+
+		Dim demora_Agencia As Long = 0
+		Dim agencia As String = ""
 
 
 		Dim dirfacturacion As New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia)
 
 		Dim direccionesEnvio As New List(Of Direccion)
 
-		Dim ccar As New ClienteCarrito(codCliente:=CodCliente, rzs:=rzs, nombrecomercial:=nombrecomercial, cif:=cif, direccion_predet:=direccion_predet, formaPago:=formapago, dirFacturacion:=dirFacturacion, direccionesEnvio:=direccionesEnvio)
+		Dim ccar As New ClienteCarrito(codCliente:=CodCliente, rzs:=rzs, nombrecomercial:=nombrecomercial, cif:=cif, direccion_predet:=direccion_predet, dirEnvio:=direccionEnvio, formaPago:=formaPago, dirFacturacion:=dirfacturacion, direccionesEnvio:=direccionesEnvio)
 
 
 
 
-		'For Each row As DataRow In dt.Rows
+		For Each row As DataRow In dt.Rows
 
-		'	If row.Item("id") <> curID Then
-		'		totalOfertas += 1
-		'		ofertaActual = New Oferta
+			codigo = row.Item("CodCliente")
+			codsucursal = row.Item("codsucursal")
 
-		'		res.Add(ofertaActual)
 
-		'		precios = New List(Of Tarifa)
 
-		'		curID = row.Item("id")
+			If Not IsDBNull(row.Item("NombreSucursal")) Then
+				nombreSucursal = row.Item("NombreSucursal")
+			End If
 
-		'		With ofertaActual
 
-		'			.Id = curID
-		'			.Cod = row.Item("cod")
-		'			.Disponibles = row.Item("disponibles")
-		'			.Imagen = row.Item("imagen")
-		'			.Codagrupacion = row.Item("codagrupacion")
-		'			.Desc = New Literales With {
-		'				.es = row.Item("desc_es"),
-		'				.en = row.Item("desc_en"),
-		'				.fr = row.Item("desc_fr")
-		'			}
-		'			.Desc2 = New Literales With {
-		'				.es = row.Item("desc2_es"),
-		'				.en = row.Item("desc2_en"),
-		'				.fr = row.Item("desc2_fr")
-		'			}
+			dire = row.Item("direccion")
 
-		'			.Precios = precios
+			codpostal = row.Item("codpostal")
+			poblacion = row.Item("pobsuc")
+			provincia = row.Item("provsuc")
 
-		'		End With
-		'	End If
 
-		'	totalPrecios += 1
 
-		'	Dim precioActual As New Tarifa
-		'	precios.Add(precioActual)
+			If Not IsDBNull(row.Item("telefsuc")) Then
+				telef = row.Item("telefsuc")
+			End If
+			If Not IsDBNull(row.Item("e-mail")) Then
+				email = row.Item("e-mail")
+			End If
+			If Not IsDBNull(row.Item("Observaciones")) Then
+				observaciones = row.Item("Observaciones")
+			End If
 
-		'	With precioActual
-		'		.Tarifa = row.Item("CodTarifa")
-		'		.Moneda = row.Item("Moneda")
-		'		.Precio = row.Item("Precio")
-		'		.Descripcion = row.Item("Descripcion")
+			demora_Agencia = row.Item("Demora_agencia")
+			agencia = row.Item("Agencia")
 
-		'	End With
 
-		'Next
+			dirfacturacion = New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia)
+
+			ccar.DireccionesEnvio.Add(dirfacturacion)
+
+		Next
 
 
 		Json = js.Serialize(ccar)
