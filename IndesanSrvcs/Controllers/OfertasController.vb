@@ -1,8 +1,9 @@
 ﻿Imports System.IdentityModel.Tokens.Jwt
 Imports System.Web.Http
-Imports System.Web.Script.Serialization
-Imports Microsoft.IdentityModel.Tokens
+
 Imports IndesanSrvcs.Controllers
+
+
 Namespace Ofertas
 	<Authorize>
 	<RoutePrefix("api/ofertas")>
@@ -54,6 +55,21 @@ Namespace Ofertas
 
 
 		End Function
+
+		<HttpPost>
+		<Route("cursarPedido")>
+		Public Function cursarPedido(<FromBody()> pedido) As IHttpActionResult
+
+
+
+
+			Return Ok("{""data"": {""resultado"":""OK"" }, ""output"":" & pedido.ToString & "}")
+
+
+
+
+		End Function
+
 
 	End Class
 End Namespace
