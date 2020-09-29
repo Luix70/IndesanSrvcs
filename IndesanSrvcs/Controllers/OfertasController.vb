@@ -1,8 +1,8 @@
 ﻿Imports System.IdentityModel.Tokens.Jwt
 Imports System.Web.Http
-
+Imports IndesanSrvcs.QueryJson
 Imports IndesanSrvcs.Controllers
-
+Imports System.Web.Script.Serialization
 
 Namespace Ofertas
 	<Authorize>
@@ -58,12 +58,23 @@ Namespace Ofertas
 
 		<HttpPost>
 		<Route("cursarPedido")>
-		Public Function cursarPedido(<FromBody()> pedido) As IHttpActionResult
+		Public Function cursarPedido(<FromBody()> pedido As PedidoCarrito) As IHttpActionResult
+
+			Dim js As JavaScriptSerializer
+			js = New JavaScriptSerializer()
+			js.MaxJsonLength = 100000000
+
+			Dim qj As New QueryJson()
+
+			If Not qj.reservarOfertas(pedido.ListaArticulos) Then
+				Return Ok("{""data"": {""resultado"":""Fail"", ""Motivo"":""STOCK"" }, ""output"":" & js.Serialize(pedido) & "}")
+			End If
 
 
 
 
-			Return Ok("{""data"": {""resultado"":""OK"" }, ""output"":" & pedido.ToString & "}")
+
+			Return Ok("{""data"": {""resultado"":""OK"" }, ""output"":" & js.Serialize(pedido) & "}")
 
 
 

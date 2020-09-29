@@ -20,7 +20,7 @@ Public Class QueryJson
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
 
-	Private Class Literales
+	Public Class Literales
 		Private es_ As String
 		Private en_ As String
 		Private fr_ As String
@@ -52,7 +52,7 @@ Public Class QueryJson
 			End Set
 		End Property
 	End Class
-	Private Class Tarifa
+	Public Class Tarifa
 
 		Private tarifa_ As String
 		Private precio_ As Single
@@ -97,7 +97,7 @@ Public Class QueryJson
 		End Property
 	End Class
 
-	Private Class Oferta
+	Public Class Oferta
 
 		Private Id_ As Long
 		Private Cod_ As String
@@ -108,6 +108,11 @@ Public Class QueryJson
 		Private Precios_ As New List(Of Tarifa)
 		Private Codagrupacion_ As String
 		Private Reservadas_ As Long
+		Private Codembalaje_ As String
+		Private Bultos_ As Long
+		Private Peso_ As Single
+		Private Volumen_ As Single
+
 
 
 		Public Property Id As Long
@@ -175,10 +180,10 @@ Public Class QueryJson
 
 		Public Property Codagrupacion As String
 			Get
-				Return codagrupacion_
+				Return Codagrupacion_
 			End Get
 			Set(value As String)
-				codagrupacion_ = value
+				Codagrupacion_ = value
 			End Set
 		End Property
 
@@ -188,6 +193,42 @@ Public Class QueryJson
 			End Get
 			Set(value As Long)
 				Reservadas_ = value
+			End Set
+		End Property
+
+		Public Property Codembalaje As String
+			Get
+				Return Codembalaje_
+			End Get
+			Set(value As String)
+				Codembalaje_ = value
+			End Set
+		End Property
+
+		Public Property Bultos As Long
+			Get
+				Return Bultos_
+			End Get
+			Set(value As Long)
+				Bultos_ = value
+			End Set
+		End Property
+
+		Public Property Peso As Single
+			Get
+				Return Peso_
+			End Get
+			Set(value As Single)
+				Peso_ = value
+			End Set
+		End Property
+
+		Public Property Volumen As Single
+			Get
+				Return Volumen_
+			End Get
+			Set(value As Single)
+				Volumen_ = value
 			End Set
 		End Property
 	End Class
@@ -437,7 +478,7 @@ Public Class QueryJson
 		End Function
 	End Class
 
-	Private Class ClienteCarrito
+	Public Class ClienteCarrito
 
 		Private codCliente_ As String
 		Private rzs_ As String
@@ -545,22 +586,22 @@ Public Class QueryJson
 
 
 	End Class
-	Private Class Direccion
-			Private codigo_ As String
-			Private codsucursal_ As Long
-			Private NombreSucursal_ As String
-			Private direccion_ As String
-			Private codpostal_ As String
-			Private poblacion_ As String
-			Private provincia_ As String
-			Private telef_ As String
-			Private email_ As String
-			Private Observaciones_ As String
-			Private demora_Agencia_ As Long
-			Private Agencia_ As String
-			Public Sub New()
+	Public Class Direccion
+		Private codigo_ As String
+		Private codsucursal_ As Long
+		Private NombreSucursal_ As String
+		Private direccion_ As String
+		Private codpostal_ As String
+		Private poblacion_ As String
+		Private provincia_ As String
+		Private telef_ As String
+		Private email_ As String
+		Private Observaciones_ As String
+		Private demora_Agencia_ As Long
+		Private Agencia_ As String
+		Public Sub New()
 
-			End Sub
+		End Sub
 
 		Public Sub New(codigo As String, codsucursal As Long, nombreSucursal As String, direccion As String, codpostal As String, poblacion As String, provincia As String, telef As String, email As String, observaciones As String, demora_Agencia As Long, agencia As String)
 			Me.Codigo = codigo
@@ -578,118 +619,170 @@ Public Class QueryJson
 		End Sub
 
 		Public Property Codigo As String
-				Get
-					Return codigo_
-				End Get
-				Set(value As String)
-					codigo_ = value
-				End Set
-			End Property
+			Get
+				Return codigo_
+			End Get
+			Set(value As String)
+				codigo_ = value
+			End Set
+		End Property
 
-			Public Property Codsucursal As Long
-				Get
-					Return codsucursal_
-				End Get
-				Set(value As Long)
-					codsucursal_ = value
-				End Set
-			End Property
+		Public Property Codsucursal As Long
+			Get
+				Return codsucursal_
+			End Get
+			Set(value As Long)
+				codsucursal_ = value
+			End Set
+		End Property
 
-			Public Property NombreSucursal As String
-				Get
-					Return NombreSucursal_
-				End Get
-				Set(value As String)
-					NombreSucursal_ = value
-				End Set
-			End Property
+		Public Property NombreSucursal As String
+			Get
+				Return NombreSucursal_
+			End Get
+			Set(value As String)
+				NombreSucursal_ = value
+			End Set
+		End Property
 
-			Public Property Direccion As String
-				Get
-					Return direccion_
-				End Get
-				Set(value As String)
-					direccion_ = value
-				End Set
-			End Property
+		Public Property Direccion As String
+			Get
+				Return direccion_
+			End Get
+			Set(value As String)
+				direccion_ = value
+			End Set
+		End Property
 
-			Public Property Codpostal As String
-				Get
-					Return codpostal_
-				End Get
-				Set(value As String)
-					codpostal_ = value
-				End Set
-			End Property
+		Public Property Codpostal As String
+			Get
+				Return codpostal_
+			End Get
+			Set(value As String)
+				codpostal_ = value
+			End Set
+		End Property
 
-			Public Property Poblacion As String
-				Get
-					Return poblacion_
-				End Get
-				Set(value As String)
-					poblacion_ = value
-				End Set
-			End Property
+		Public Property Poblacion As String
+			Get
+				Return poblacion_
+			End Get
+			Set(value As String)
+				poblacion_ = value
+			End Set
+		End Property
 
-			Public Property Provincia As String
-				Get
-					Return provincia_
-				End Get
-				Set(value As String)
-					provincia_ = value
-				End Set
-			End Property
+		Public Property Provincia As String
+			Get
+				Return provincia_
+			End Get
+			Set(value As String)
+				provincia_ = value
+			End Set
+		End Property
 
-			Public Property Telef As String
-				Get
-					Return telef_
-				End Get
-				Set(value As String)
-					telef_ = value
-				End Set
-			End Property
+		Public Property Telef As String
+			Get
+				Return telef_
+			End Get
+			Set(value As String)
+				telef_ = value
+			End Set
+		End Property
 
-			Public Property Email As String
-				Get
-					Return email_
-				End Get
-				Set(value As String)
-					email_ = value
-				End Set
-			End Property
+		Public Property Email As String
+			Get
+				Return email_
+			End Get
+			Set(value As String)
+				email_ = value
+			End Set
+		End Property
 
-			Public Property Observaciones As String
-				Get
-					Return Observaciones_
-				End Get
-				Set(value As String)
-					Observaciones_ = value
-				End Set
-			End Property
+		Public Property Observaciones As String
+			Get
+				Return Observaciones_
+			End Get
+			Set(value As String)
+				Observaciones_ = value
+			End Set
+		End Property
 
-			Public Property Demora_Agencia As Long
-				Get
-					Return demora_Agencia_
-				End Get
-				Set(value As Long)
-					demora_Agencia_ = value
-				End Set
-			End Property
+		Public Property Demora_Agencia As Long
+			Get
+				Return demora_Agencia_
+			End Get
+			Set(value As Long)
+				demora_Agencia_ = value
+			End Set
+		End Property
 
-			Public Property Agencia As String
-				Get
-					Return Agencia_
-				End Get
-				Set(value As String)
-					Agencia_ = value
-				End Set
-			End Property
-
-
-		End Class
+		Public Property Agencia As String
+			Get
+				Return Agencia_
+			End Get
+			Set(value As String)
+				Agencia_ = value
+			End Set
+		End Property
 
 
+	End Class
 
+
+	Public Class PedidoCarrito
+		Private observaciones_ As String
+		Private referencia_ As String
+		Private codPedido_ As Long
+
+		Private datosCliente_ As ClienteCarrito
+		Private listaArticulos_ As List(Of Oferta)
+		Public Property CodPedido As Long
+			Get
+				Return codPedido_
+			End Get
+			Set(value As Long)
+				codPedido_ = value
+			End Set
+		End Property
+		Public Property Observaciones As String
+			Get
+				Return observaciones_
+			End Get
+			Set(value As String)
+				observaciones_ = value
+			End Set
+		End Property
+
+		Public Property Referencia As String
+			Get
+				Return referencia_
+			End Get
+			Set(value As String)
+				referencia_ = value
+			End Set
+		End Property
+
+		Public Property DatosCliente As ClienteCarrito
+			Get
+				Return datosCliente_
+			End Get
+			Set(value As ClienteCarrito)
+				datosCliente_ = value
+			End Set
+		End Property
+
+		Public Property ListaArticulos As List(Of Oferta)
+			Get
+				Return listaArticulos_
+			End Get
+			Set(value As List(Of Oferta))
+				listaArticulos_ = value
+			End Set
+		End Property
+
+
+	End Class
 
 	Private Class Documento
 		Public tipodoc As String
@@ -2323,6 +2416,10 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					}
 
 					.Precios = precios
+					.Bultos = row.Item("Bultos")
+					.Codembalaje = row.Item("Codembalaje")
+					.Peso = row.Item("Peso")
+					.Volumen = row.Item("Volumen")
 
 				End With
 			End If
@@ -2479,6 +2576,75 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Return Json
 
 	End Function
+
+	Public Function reservarOfertas(articulos As List(Of Oferta)) As Boolean
+
+		Dim strCadenaConsulta As String
+		strCadenaConsulta = "SELECT * FROM Ofertas;"
+
+		'1.- Verificamos disponibilidad
+
+
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+		Dim blnDisponibles As Boolean = True
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+
+
+			For Each articulo As Oferta In articulos
+
+				For Each row As DataRow In dt.Rows
+
+					If row.Item("id") = articulo.Id Then
+
+						blnDisponibles = blnDisponibles And (row.Item("disponibles") >= articulo.Reservadas)
+						If blnDisponibles Then
+							row.Item("disponibles") = row.Item("disponibles") - articulo.Reservadas
+							If row.Item("disponibles") = 0 Then
+								row.Delete()
+							End If
+
+						End If
+					End If
+
+
+
+				Next
+
+			Next
+
+			'Ahora si hemos comprobado la disponiblidad de todos los articulos, actualizamos la base de datos de ofertas
+
+			If blnDisponibles Then
+
+				Dim cd As New OleDbCommandBuilder(dad)
+				dad.UpdateCommand = cd.GetUpdateCommand()
+				dad.Update(dt)
+
+			End If
+
+		End Using
+
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		Return blnDisponibles
+
+	End Function
+
 End Class
 
 
