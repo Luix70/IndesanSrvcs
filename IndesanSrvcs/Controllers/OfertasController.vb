@@ -66,18 +66,27 @@ Namespace Ofertas
 
 			Dim qj As New QueryJson()
 
+			'Comprobamos la existencia de los articulos y realizamos la reserva
 			If Not qj.reservarOfertas(pedido.ListaArticulos) Then
 				Return Ok("{""data"": {""resultado"":""Fail"", ""Motivo"":""STOCK"" }, ""output"":" & js.Serialize(pedido) & "}")
+			End If
+
+
+			'Hemos llegado hasta aqui, es por que hay existencias.
+			'Procedemos a generar el pedido
+
+			If Not qj.generarPedido(pedido) Then
+
+				Return Ok("{""data"": {""resultado"":""Fail"", ""Motivo"":""PEDIDO""  }, ""output"":" & js.Serialize(pedido) & "}")
+
 			End If
 
 
 
 
 
+			'En el caso en que todo lo anterior 
 			Return Ok("{""data"": {""resultado"":""OK"" }, ""output"":" & js.Serialize(pedido) & "}")
-
-
-
 
 		End Function
 

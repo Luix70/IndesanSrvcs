@@ -599,11 +599,38 @@ Public Class QueryJson
 		Private Observaciones_ As String
 		Private demora_Agencia_ As Long
 		Private Agencia_ As String
+		Private zona_agencia_ As String
+
+		Private dto1_ As Single
+		Private dto2_ As Single
+		Private rep1_ As Long
+		Private rep2_ As Long
+		Private com1_ As Single
+		Private com2_ As Single
+		Private codFormaPago_ As Long
+		Private porte_ As String
+		Private contacto_ As String
+		Private IBAN_ As String
+		Private BIC_ As String
+
+		Private C1_ As String
+		Private C2_ As String
+		Private DC_ As String
+		Private NC_ As String
+
+		Private codProvincia_ As Long
+		Private telef2_ As String
+		Private fax_ As String
+		Private codAgencia_ As Long
+		Private diascarga_ As String
+
+
+
 		Public Sub New()
 
 		End Sub
 
-		Public Sub New(codigo As String, codsucursal As Long, nombreSucursal As String, direccion As String, codpostal As String, poblacion As String, provincia As String, telef As String, email As String, observaciones As String, demora_Agencia As Long, agencia As String)
+		Public Sub New(codigo As String, codsucursal As Long, nombreSucursal As String, direccion As String, codpostal As String, poblacion As String, provincia As String, telef As String, email As String, observaciones As String, demora_Agencia As Long, agencia As String, zona_agencia As String)
 			Me.Codigo = codigo
 			Me.Codsucursal = codsucursal
 			Me.NombreSucursal = nombreSucursal
@@ -616,6 +643,84 @@ Public Class QueryJson
 			Me.Observaciones = observaciones
 			Me.Demora_Agencia = demora_Agencia
 			Me.Agencia = agencia
+			Me.zona_agencia_ = zona_agencia
+		End Sub
+		Public Sub New(row As DataRow)
+
+			Me.Codigo = row.Item("CodCliente")
+			Codsucursal = row.Item("codsucursal")
+
+			If Not IsDBNull(row.Item("NombreSucursal")) Then
+				Me.NombreSucursal = row.Item("NombreSucursal")
+			End If
+
+
+			Me.Direccion = row.Item("direccion")
+
+			Me.Codpostal = row.Item("codpostal")
+			Me.Poblacion = row.Item("pobsuc")
+			Me.Provincia = row.Item("provsuc")
+
+
+
+			If Not IsDBNull(row.Item("telefsuc")) Then
+				Me.Telef = row.Item("telefsuc")
+			End If
+			If Not IsDBNull(row.Item("e-mail")) Then
+				Me.Email = row.Item("e-mail")
+			End If
+			If Not IsDBNull(row.Item("Observaciones")) Then
+				Me.Observaciones = row.Item("Observaciones")
+			End If
+
+			Me.Demora_Agencia = row.Item("Demora_agencia")
+			Me.Agencia = row.Item("Agencia")
+			Me.Zona_agencia = row.Item("z_AgenciaSuc")
+
+
+
+			Me.BIC = row.Item("BIC")
+			Me.CodAgencia = row.Item("agenciasuc")
+			Me.CodFormaPago = row.Item("formapago")
+
+
+			Me.CodProvincia = row.Item("codprovincia")
+
+			Me.Com1 = row.Item("Com11")
+			Me.Com2 = row.Item("Com12")
+
+			If Not IsDBNull(row.Item("Contacto")) Then
+				Me.Contacto = row.Item("Contacto")
+			End If
+
+			If Not IsDBNull(row.Item("Dias_carga")) Then
+				Me.Diascarga = row.Item("Dias_carga")
+			End If
+
+
+			Me.Dto1 = row.Item("desc1")
+			Me.Dto2 = row.Item("desc2")
+
+			Me.Fax = row.Item("fax")
+			Me.IBAN = row.Item("IBAN")
+
+			Me.C1 = row.Item("C1")
+			Me.C2 = row.Item("C2")
+			Me.DC = row.Item("DC")
+			Me.NC = row.Item("NC")
+
+
+			Me.Porte = row.Item("TipoPorte")
+
+			Me.Rep1 = row.Item("representante")
+			Me.Rep2 = row.Item("representante2")
+
+			If Not IsDBNull(row.Item("telef2")) Then
+				Me.Telef2 = row.Item("telef2")
+			End If
+
+
+
 		End Sub
 
 		Public Property Codigo As String
@@ -726,7 +831,194 @@ Public Class QueryJson
 			End Set
 		End Property
 
+		Public Property Zona_agencia As String
+			Get
+				Return zona_agencia_
+			End Get
+			Set(value As String)
+				zona_agencia_ = value
+			End Set
+		End Property
 
+		Public Property Dto1 As Single
+			Get
+				Return dto1_
+			End Get
+			Set(value As Single)
+				dto1_ = value
+			End Set
+		End Property
+
+		Public Property Dto2 As Single
+			Get
+				Return dto2_
+			End Get
+			Set(value As Single)
+				dto2_ = value
+			End Set
+		End Property
+
+		Public Property Rep1 As Long
+			Get
+				Return rep1_
+			End Get
+			Set(value As Long)
+				rep1_ = value
+			End Set
+		End Property
+
+		Public Property Rep2 As Long
+			Get
+				Return rep2_
+			End Get
+			Set(value As Long)
+				rep2_ = value
+			End Set
+		End Property
+
+		Public Property Com1 As Single
+			Get
+				Return com1_
+			End Get
+			Set(value As Single)
+				com1_ = value
+			End Set
+		End Property
+
+		Public Property Com2 As Single
+			Get
+				Return com2_
+			End Get
+			Set(value As Single)
+				com2_ = value
+			End Set
+		End Property
+
+		Public Property CodFormaPago As Long
+			Get
+				Return codFormaPago_
+			End Get
+			Set(value As Long)
+				codFormaPago_ = value
+			End Set
+		End Property
+
+		Public Property Porte As String
+			Get
+				Return porte_
+			End Get
+			Set(value As String)
+				porte_ = value
+			End Set
+		End Property
+
+		Public Property Contacto As String
+			Get
+				Return contacto_
+			End Get
+			Set(value As String)
+				contacto_ = value
+			End Set
+		End Property
+
+		Public Property IBAN As String
+			Get
+				Return IBAN_
+			End Get
+			Set(value As String)
+				IBAN_ = value
+			End Set
+		End Property
+
+		Public Property BIC As String
+			Get
+				Return BIC_
+			End Get
+			Set(value As String)
+				BIC_ = value
+			End Set
+		End Property
+
+		Public Property CodProvincia As Long
+			Get
+				Return codProvincia_
+			End Get
+			Set(value As Long)
+				codProvincia_ = value
+			End Set
+		End Property
+
+		Public Property Telef2 As String
+			Get
+				Return telef2_
+			End Get
+			Set(value As String)
+				telef2_ = value
+			End Set
+		End Property
+
+		Public Property Fax As String
+			Get
+				Return fax_
+			End Get
+			Set(value As String)
+				fax_ = value
+			End Set
+		End Property
+
+		Public Property CodAgencia As Long
+			Get
+				Return codAgencia_
+			End Get
+			Set(value As Long)
+				codAgencia_ = value
+			End Set
+		End Property
+
+		Public Property Diascarga As String
+			Get
+				Return diascarga_
+			End Get
+			Set(value As String)
+				diascarga_ = value
+			End Set
+		End Property
+
+		Public Property C1 As String
+			Get
+				Return C1_
+			End Get
+			Set(value As String)
+				C1_ = value
+			End Set
+		End Property
+
+		Public Property C2 As String
+			Get
+				Return C2_
+			End Get
+			Set(value As String)
+				C2_ = value
+			End Set
+		End Property
+
+		Public Property DC As String
+			Get
+				Return DC_
+			End Get
+			Set(value As String)
+				DC_ = value
+			End Set
+		End Property
+
+		Public Property NC As String
+			Get
+				Return NC_
+			End Get
+			Set(value As String)
+				NC_ = value
+			End Set
+		End Property
 	End Class
 
 
@@ -2520,9 +2812,10 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Dim demora_Agencia As Long = 0
 		Dim agencia As String = ""
+		Dim zona_agencia As String = ""
 
 
-		Dim dirfacturacion As New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia)
+		Dim dirfacturacion As New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia, zona_agencia:=zona_agencia)
 
 		Dim direccionesEnvio As New List(Of Direccion)
 
@@ -2562,11 +2855,11 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			End If
 
 			demora_Agencia = row.Item("Demora_agencia")
-			agencia = row.Item("Agencia")
+			agencia = row.Item("Agenciasuc")
+			zona_agencia = row.Item("z_AgenciaSuc")
 
-
-			dirfacturacion = New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia)
-
+			'dirfacturacion = New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia, zona_agencia:=zona_agencia)
+			dirfacturacion = New Direccion(row)
 			ccar.DireccionesEnvio.Add(dirfacturacion)
 
 		Next
@@ -2642,6 +2935,263 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 		Return blnDisponibles
+
+	End Function
+
+	Public Function generarPedido(pedido As PedidoCarrito) As Boolean
+
+		Dim resultado As Boolean = False
+		'En primer lugar obtenemos un numero de pedido del contador
+
+		pedido.CodPedido = sumarContador("pedido", 1)
+
+		If pedido.CodPedido = -1 Then Return resultado
+
+		'creamos un registro de documento
+
+		resultado = generaRegistroDoc(pedido)
+
+		Return resultado
+
+
+
+	End Function
+
+	Private Function sumarContador(contador As String, incremento As Long) As Long
+
+		Dim strCadenaConsulta As String
+		strCadenaConsulta = $"SELECT * FROM contadores WHERE contadores.descripcion = '{contador}' ;"
+
+		Dim valorContador As Long
+
+		'1.- Verificamos disponibilidad
+
+
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+		Dim blnDisponibles As Boolean = True
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+			If dt.Rows.Count <> 1 Then
+				valorContador = -1
+
+			Else
+
+				dt.Rows(0).Item("valor") = dt.Rows(0).Item("valor") + incremento
+				valorContador = dt.Rows(0).Item("valor")
+
+				If incremento <> 0 Then
+
+					Dim cd As New OleDbCommandBuilder(dad)
+					dad.UpdateCommand = cd.GetUpdateCommand()
+					dad.Update(dt)
+
+				End If
+			End If
+
+
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+		Return valorContador
+
+	End Function
+	Private Function generaRegistroDoc(pedido As PedidoCarrito) As Boolean
+		Dim strCadenaConsulta As String
+		Dim resultado As Boolean = True
+		'en principio devolvmos una tabla vacia
+		strCadenaConsulta = "SELECT * FROM Documentos_web ;"
+
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+		Dim blnDisponibles As Boolean = True
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				Debug.Print(ex.Message)
+			End Try
+
+			If dt.Rows.Count <> 0 Then
+				resultado = False
+			Else
+
+				'procedemos a generar una nueva fila
+
+				Dim cd As New OleDbCommandBuilder(dad)
+				dad.UpdateCommand = cd.GetUpdateCommand()
+
+				Dim dirE As Direccion
+
+				dirE = pedido.DatosCliente.DireccionesEnvio.Find(Function(dir As Direccion)
+																	 Return dir.Codsucursal = pedido.DatosCliente.DirEnvio
+																 End Function)
+
+				Dim nuevoDoc As DataRow = dt.NewRow()
+				With nuevoDoc
+					.Item("tipodoc") = "P"
+					.Item("codigodoc") = pedido.CodPedido
+					.Item("proveedor") = "999999"
+					.Item("tipoProveedor") = 0
+					.Item("docprevio") = pedido.CodPedido
+					.Item("PedidoPor") = "CLIENTE"
+					.Item("ATravesDe") = "FLASH"
+					.Item("cliente") = pedido.DatosCliente.CodCliente
+					.Item("TipoCliente") = 1
+
+					.Item("zona_agencia") = dirE.Zona_agencia
+					.Item("agencia") = dirE.CodAgencia
+					.Item("rep1") = dirE.rep1
+					.Item("rep2") = dirE.rep2
+
+					.Item("sucursal") = pedido.DatosCliente.DirEnvio
+					.Item("sucursalProcedencia") = pedido.DatosCliente.DireccionesEnvio.Item(0).Codsucursal
+					.Item("tipo") = "D"
+					.Item("fecha1") = Now()
+
+					''.Item("e_mail") = "luis@indesan.com"
+					''.Item("importe_bruto") = 999.99
+
+					'.Item("banco")=
+					'.Item("referencia")=
+					'.Item("CC1")=
+					'.Item("CC2")=
+					'.Item("DC")=
+					'.Item("NC")=
+					'.Item("com1")=
+					'.Item("com2")=
+					'.Item("dto1")=
+					'.Item("dto2")=
+					.Item("fechacliente") = DateAdd(DateInterval.Day, 14, Now())
+					.Item("fechaf") = DateAdd(DateInterval.Day, 7, Now())
+					.Item("diasf") = 7
+					.Item("fecha2") = DateAdd(DateInterval.Day, 14, Now())
+					.Item("diasag") = dirE.Demora_Agencia
+					'.Item("formapago")=
+					.Item("formapagodesc") = pedido.DatosCliente.FormaPago
+					.Item("moneda") = "EUR"
+					'.Item("fechaseleccion")=
+					'.Item("Portes")=
+					'.Item("bultos")=
+					.Item("PEDIDO") = pedido.CodPedido
+					.Item("FECHAPEDIDO") = Now()
+					.Item("VALORADO") = True
+					.Item("IMPRESO") = True
+					'.Item("IVA")=
+					'.Item("REQ")=
+					.Item("quiereetiquetas") = False
+					.Item("agrupar") = False
+					'.Item("VENCIMIENTOS")=
+					'.Item("IMPORTES")=
+					.Item("URGENTE") = True
+					.Item("RECLAMADO") = True
+					.Item("DESCARGA") = False
+					.Item("AVISAR") = True
+					.Item("SELECCIONADO") = False
+
+					'.Item("importes_e")=
+					.Item("Dias_carga") = "V"
+					'.Item("documentooriginal") =
+					.Item("retenido") = False
+					.Item("liberado") = False
+
+					'.Item("fecha_tope_retencion")=
+					.Item("pendiente_muestra") = False
+					'.Item("fecha_muestra")=
+					.Item("introducido") = "CLIENTE " & Now().ToShortDateString
+					.Item("ultima_modificacion") = "CLIENTE " & Now().ToShortDateString
+					'.Item("contacto")=
+					.Item("confirmar") = True
+					.Item("confirmarAlRepre") = True
+					'.Item("fecha_confirmacion")=
+					'.Item("reclamar")=
+					'.Item("fecha_reclamacion")=
+					.Item("agrupar_alb") = False
+					.Item("fraccionar_entregas") = False
+					'.Item("articulos")=
+					'.Item("FECHA_RECL_MUESTRA")=
+					'.Item("MODO_RECLAMACION")=
+					'.Item("FECHA_FABRICA")=
+					'.Item("fecha_aviso_recogida")=
+					.Item("Pendiente_precisar") = False
+					.Item("EnModificacion") = False
+					.Item("ConfValorada") = True
+					.Item("ConfEmail") = True
+					'.Item("fecha_confirmacion_representante")=
+					.Item("emailConfirmacion") = dirE.Email
+					'.Item("IBAN")=
+					'.Item("BIC")=
+					.Item("Contabilizado") = False
+					'.Item("Asiento")=
+
+					.Item("incidenciaPago") = False
+					.Item("incidenciaPagoResuelta") = False
+					'.Item("FechaEnvioFraElectronica")=
+					'.Item("FechaImpresion")=
+					'.Item("FaxConfirmacion") = 
+					.Item("direccion") = dirE.Direccion
+					.Item("codpostal") = dirE.Codpostal
+					.Item("poblacion") = dirE.Poblacion
+					'.Item("codprovincia") = dirE.Provincia
+					'.Item("fax") = dirE.
+					.Item("telef") = dirE.Telef
+					'.Item("telef2")=
+					.Item("Observaciones") = dirE.Observaciones
+					.Item("Demora_agencia") = dirE.Demora_Agencia
+					'.Item("Direccion2")=
+					.Item("cp") = dirE.Codpostal
+					.Item("Consignatario") = dirE.NombreSucursal
+					.Item("DireccionPersonalizada") = False
+
+
+
+
+				End With
+
+				dt.Rows.Add(nuevoDoc)
+
+				Try
+					dad.Update(dt)
+				Catch ex As Exception
+					resultado = False
+
+					Debug.Print(ex.Message)
+				End Try
+
+
+			End If
+
+
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+
+		Return Resultado
+
+
 
 	End Function
 
