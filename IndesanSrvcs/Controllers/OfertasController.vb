@@ -76,6 +76,12 @@ Namespace Ofertas
 			'Procedemos a generar el pedido
 
 			If Not qj.generarPedido(pedido) Then
+				' hay que cancelar las ofertas
+				For Each ofr As Oferta In pedido.ListaArticulos
+					ofr.Reservadas = -1 * ofr.Reservadas
+				Next
+
+				qj.reservarOfertas(pedido.ListaArticulos)
 
 				Return Ok("{""data"": {""resultado"":""Fail"", ""Motivo"":""PEDIDO""  }, ""output"":" & js.Serialize(pedido) & "}")
 

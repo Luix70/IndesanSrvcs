@@ -112,6 +112,7 @@ Public Class QueryJson
 		Private Bultos_ As Long
 		Private Peso_ As Single
 		Private Volumen_ As Single
+		Private codPrecio_ As Long
 
 
 
@@ -231,6 +232,28 @@ Public Class QueryJson
 				Volumen_ = value
 			End Set
 		End Property
+
+		Public Property CodPrecio As Long
+			Get
+				Return Me.codPrecio_
+			End Get
+			Set(value As Long)
+				Me.codPrecio_ = value
+			End Set
+		End Property
+
+		Friend Function obtenerPrecio(tarifa_suc As String) As Single
+			Dim sngPrecio As Single = 0
+			Dim tar As Tarifa = Me.Precios.Find(Function(t)
+													Return t.Tarifa = tarifa_suc
+												End Function)
+			sngPrecio = tar.Precio
+
+			Return sngPrecio
+
+		End Function
+
+
 	End Class
 
 	Private Class Resultado
@@ -486,6 +509,10 @@ Public Class QueryJson
 		Private cif_ As String
 		Private Direccion_predet_ As Long
 		Private FormaPago_ As String
+		Private tipoIva_ As String
+		Private tarifa_ As String
+		Private Idioma_ As String
+
 		Private DirEnvio_ As Long
 		Private DirFacturacion_ As Direccion
 		Private DireccionesEnvio_ As List(Of Direccion)
@@ -493,7 +520,10 @@ Public Class QueryJson
 
 		End Sub
 
-		Public Sub New(codCliente As String, rzs As String, nombrecomercial As String, cif As String, direccion_predet As Long, dirEnvio As Long, formaPago As String, dirFacturacion As Direccion, direccionesEnvio As List(Of Direccion))
+		Public Sub New(codCliente As String, rzs As String, nombrecomercial As String, cif As String, direccion_predet As Long,
+					   dirEnvio As Long, formaPago As String, dirFacturacion As Direccion, direccionesEnvio As List(Of Direccion),
+					   tipoiva As String, tarifa As String, idioma As String)
+
 			Me.CodCliente = codCliente
 			Me.Rzs = rzs
 			Me.Nombrecomercial = nombrecomercial
@@ -503,6 +533,9 @@ Public Class QueryJson
 			Me.FormaPago = formaPago
 			Me.DirFacturacion = dirFacturacion
 			Me.DireccionesEnvio = direccionesEnvio
+			Me.TipoIva = tipoiva
+			Me.Tarifa = tarifa
+			Me.Idioma = idioma
 		End Sub
 
 		Public Property CodCliente As String
@@ -584,7 +617,32 @@ Public Class QueryJson
 			End Set
 		End Property
 
+		Public Property TipoIva As String
+			Get
+				Return tipoIva_
+			End Get
+			Set(value As String)
+				tipoIva_ = value
+			End Set
+		End Property
 
+		Public Property Tarifa As String
+			Get
+				Return tarifa_
+			End Get
+			Set(value As String)
+				tarifa_ = value
+			End Set
+		End Property
+
+		Public Property Idioma As String
+			Get
+				Return Idioma_
+			End Get
+			Set(value As String)
+				Idioma_ = value
+			End Set
+		End Property
 	End Class
 	Public Class Direccion
 		Private codigo_ As String
@@ -608,6 +666,8 @@ Public Class QueryJson
 		Private com1_ As Single
 		Private com2_ As Single
 		Private codFormaPago_ As Long
+		Private descFormaPago_ As String
+
 		Private porte_ As String
 		Private contacto_ As String
 		Private IBAN_ As String
@@ -624,6 +684,8 @@ Public Class QueryJson
 		Private codAgencia_ As Long
 		Private diascarga_ As String
 
+		Private idioma_suc_ As String
+		Private tarifa_suc_ As String
 
 
 		Public Sub New()
@@ -674,15 +736,19 @@ Public Class QueryJson
 			End If
 
 			Me.Demora_Agencia = row.Item("Demora_agencia")
-			Me.Agencia = row.Item("Agencia")
-			Me.Zona_agencia = row.Item("z_AgenciaSuc")
+
+
 
 
 
 			Me.BIC = row.Item("BIC")
-			Me.CodAgencia = row.Item("agenciasuc")
-			Me.CodFormaPago = row.Item("formapago")
 
+			Me.Agencia = row.Item("Agencia")
+			Me.CodAgencia = row.Item("agenciasuc")
+			Me.Zona_agencia = row.Item("z_AgenciaSuc")
+
+			Me.CodFormaPago = row.Item("formapago")
+			Me.DescFormaPago = row.Item("DescformaPago")
 
 			Me.CodProvincia = row.Item("codprovincia")
 
@@ -719,7 +785,8 @@ Public Class QueryJson
 				Me.Telef2 = row.Item("telef2")
 			End If
 
-
+			Me.Tarifa_suc = row.Item("tarifa_suc")
+			Me.Idioma_suc = row.Item("idioma_suc")
 
 		End Sub
 
@@ -1019,6 +1086,33 @@ Public Class QueryJson
 				NC_ = value
 			End Set
 		End Property
+
+		Public Property Idioma_suc As String
+			Get
+				Return idioma_suc_
+			End Get
+			Set(value As String)
+				idioma_suc_ = value
+			End Set
+		End Property
+
+		Public Property Tarifa_suc As String
+			Get
+				Return tarifa_suc_
+			End Get
+			Set(value As String)
+				tarifa_suc_ = value
+			End Set
+		End Property
+
+		Public Property DescFormaPago As String
+			Get
+				Return descFormaPago_
+			End Get
+			Set(value As String)
+				descFormaPago_ = value
+			End Set
+		End Property
 	End Class
 
 
@@ -1073,7 +1167,93 @@ Public Class QueryJson
 			End Set
 		End Property
 
+		Friend Function totalBultos() As Long
 
+			Dim acum As Long = 0
+			For Each art As Oferta In Me.ListaArticulos
+				acum = acum + (art.Bultos * art.Reservadas)
+			Next
+			Return acum
+
+		End Function
+
+		Friend Function tasaIVA() As Single
+			Dim tmpTasaIva As Single = 21
+
+			If DatosCliente.TipoIva = "E" Then tmpTasaIva = 0
+
+			Return tmpTasaIva
+		End Function
+
+		Friend Function tasaREQ() As Single
+			Dim tmpTasaReq As Single = 0
+
+			If DatosCliente.TipoIva = "R" Then tmpTasaReq = 5.2
+
+			Return tmpTasaReq
+		End Function
+
+		Friend Function importeBruto() As Single
+
+			Dim tmpImporteBruto As Single = 0
+
+			For Each art As Oferta In Me.ListaArticulos
+				tmpImporteBruto = tmpImporteBruto + (art.obtenerPrecio(DireccionEnvio.Tarifa_suc) * art.Reservadas)
+			Next
+
+
+			Return CSng(Math.Round(tmpImporteBruto * 100) / 100.0)
+
+		End Function
+
+		Friend Function importeNeto(dt1 As Single, dt2 As Single) As Single
+			Dim tmpImporteNeto As Single = 0
+
+			tmpImporteNeto = importeBruto() * (1 - (dt1 / 100)) * (1 - (dt2 / 100))
+
+			Return CSng(Math.Round(tmpImporteNeto * 100) / 100.0)
+		End Function
+
+		Friend Function importeTotal(dt1 As Single, dt2 As Single, iva As Single, req As Single) As Single
+			Dim tmpImporteTotal As Single = 0
+
+			tmpImporteTotal = importeBruto() * (1 - (dt1 / 100)) * (1 - (dt2 / 100)) * (1 + ((iva + req) / 100))
+
+			Return CSng(Math.Round(tmpImporteTotal * 100) / 100.0)
+		End Function
+
+
+		Friend Function totalArticulos() As Long
+			Dim acum As Long = 0
+			For Each art As Oferta In Me.ListaArticulos
+				acum = acum + art.Reservadas
+			Next
+			Return acum
+		End Function
+
+		Friend Function consignatario() As String
+			Dim consig As String
+
+			consig = Me.DireccionEnvio.NombreSucursal
+
+			If Trim(consig) = "" Then
+				consig = Me.DatosCliente.Nombrecomercial
+			End If
+
+			If Trim(consig) = "" Then
+				consig = Me.DatosCliente.Rzs
+			End If
+
+			Return consig
+		End Function
+
+		Friend Function DireccionEnvio() As Direccion
+			Dim dire As Direccion
+			dire = Me.DatosCliente.DireccionesEnvio.Find(Function(dir As Direccion)
+															 Return dir.Codsucursal = Me.DatosCliente.DirEnvio
+														 End Function)
+			Return dire
+		End Function
 	End Class
 
 	Private Class Documento
@@ -2712,7 +2892,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Codembalaje = row.Item("Codembalaje")
 					.Peso = row.Item("Peso")
 					.Volumen = row.Item("Volumen")
-
+					.CodPrecio = row.Item("Codprecio")
 				End With
 			End If
 
@@ -2814,12 +2994,17 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Dim agencia As String = ""
 		Dim zona_agencia As String = ""
 
+		Dim idioma As String = dt.Rows(0).Item("Idioma")
+		Dim tipoiva As String = dt.Rows(0).Item("tipoiva")
+		Dim tarifa As String = dt.Rows(0).Item("tarifa")
+
+
 
 		Dim dirfacturacion As New Direccion(codigo:=codigo, codsucursal:=codsucursal, nombreSucursal:=nombreSucursal, direccion:=dire, codpostal:=codpostal, poblacion:=poblacion, provincia:=provincia, telef:=telef, email:=email, observaciones:=observaciones, demora_Agencia:=demora_Agencia, agencia:=agencia, zona_agencia:=zona_agencia)
 
 		Dim direccionesEnvio As New List(Of Direccion)
 
-		Dim ccar As New ClienteCarrito(codCliente:=CodCliente, rzs:=rzs, nombrecomercial:=nombrecomercial, cif:=cif, direccion_predet:=direccion_predet, dirEnvio:=direccionEnvio, formaPago:=formaPago, dirFacturacion:=dirfacturacion, direccionesEnvio:=direccionesEnvio)
+		Dim ccar As New ClienteCarrito(codCliente:=CodCliente, rzs:=rzs, nombrecomercial:=nombrecomercial, cif:=cif, direccion_predet:=direccion_predet, dirEnvio:=direccionEnvio, formaPago:=formaPago, dirFacturacion:=dirfacturacion, direccionesEnvio:=direccionesEnvio, idioma:=idioma, tarifa:=tarifa, tipoiva:=tipoiva)
 
 
 
@@ -2896,11 +3081,11 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 			For Each articulo As Oferta In articulos
-
+				Dim blnfound As Boolean = False
 				For Each row As DataRow In dt.Rows
 
 					If row.Item("id") = articulo.Id Then
-
+						blnfound = True
 						blnDisponibles = blnDisponibles And (row.Item("disponibles") >= articulo.Reservadas)
 						If blnDisponibles Then
 							row.Item("disponibles") = row.Item("disponibles") - articulo.Reservadas
@@ -2914,6 +3099,46 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 
 				Next
+
+				If Not blnfound Then
+
+					' Crear registro
+					Dim dr As DataRow = dt.NewRow
+
+					With dr
+						.Item("cod") = articulo.Cod
+						.Item("desc_es") = articulo.Desc.es
+						.Item("desc_en") = articulo.Desc.en
+						.Item("desc_fr") = articulo.Desc.fr
+						.Item("desc2_es") = articulo.Desc2.es
+						.Item("desc2_en") = articulo.Desc2.en
+						.Item("desc2_fr") = articulo.Desc2.fr
+						.Item("disponibles") = -1 * CLng(articulo.Reservadas)
+						.Item("Codprecio") = articulo.CodPrecio
+						.Item("imagen") = articulo.Imagen
+						.Item("codagrupacion") = articulo.Codagrupacion
+						.Item("Codembalaje") = articulo.Codembalaje
+						.Item("Bultos") = articulo.Bultos
+						.Item("Peso") = articulo.Peso
+						.Item("Volumen") = articulo.Volumen
+
+
+
+					End With
+
+					Dim cb As New OleDbCommandBuilder(dad)
+					cb.GetInsertCommand()
+
+					dt.Rows.Add(dr)
+
+					Try
+						dad.Update(dt)
+
+					Catch ex As Exception
+						Debug.Print(ex.Message)
+					End Try
+
+				End If
 
 			Next
 
@@ -2951,9 +3176,166 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		resultado = generaRegistroDoc(pedido)
 
+		If resultado = False Then Return resultado
+
+		'pasamos a añadir las lineas
+
+		resultado = AgregarLineas(pedido)
+
+
 		Return resultado
 
 
+
+	End Function
+
+	Private Function AgregarLineas(pedido As PedidoCarrito) As Boolean
+		Dim resultado As Boolean = True
+
+		Dim strCadenaConsulta As String
+
+		'en principio devolvmos una tabla vacia
+		strCadenaConsulta = $"SELECT * FROM Documentos_desglose WHERE documentos_desglose.tipodoc = 'P' AND documentos_desglose.codigodoc = {pedido.CodPedido} ;"
+
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+		Dim blnDisponibles As Boolean = True
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				Debug.Print(ex.Message)
+			End Try
+
+			If dt.Rows.Count <> 0 Then
+				resultado = False
+			Else
+
+				'procedemos a generar una nueva fila
+
+				Dim cd As New OleDbCommandBuilder(dad)
+				dad.UpdateCommand = cd.GetUpdateCommand()
+
+				Dim dirE As Direccion = pedido.DireccionEnvio
+
+
+
+				Dim nuevoDoc As DataRow = dt.NewRow()
+				With nuevoDoc
+
+
+					.Item("tipodoc") = "P"
+					.Item("codigodoc") = pedido.CodPedido
+
+					'.Item("Linea") = "P"
+					'.Item("pedido") = "P"
+					'.Item("albaran") = "P"
+					'.Item("fechaalbaran") = "P"
+					'.Item("ped") = "P"
+					'.Item("fechaped") = "P"
+					'.Item("coart") = "P"
+					'.Item("codagrupacion") = "P"
+					'.Item("Bultos") = "P"
+					'.Item("lineaventa") = "P"
+					'.Item("Cantidad") = "P"
+					'.Item("descripcion") = "P"
+					'.Item("desc_linea") = "P"
+					'.Item("precio") = "P"
+					'.Item("moneda") = "P"
+					'.Item("Tarifa") = "P"
+					'.Item("ConceptoEspecial") = "P"
+					'.Item("Notas") = "P"
+					'.Item("MostrarNotaPintura") = "P"
+					'.Item("MostrarNotaDescripcion") = "P"
+					'.Item("ref_linea") = "P"
+					'.Item("referencia") = "P"
+					'.Item("especial") = "P"
+					'.Item("retenido") = "P"
+					'.Item("causa_ret") = "P"
+					'.Item("fecha_muestra") = "P"
+					'.Item("Pintor") = "P"
+					'.Item("fecha_emb") = "P"
+					'.Item("seriemuestra") = "P"
+					'.Item("nummuestra") = "P"
+					'.Item("codembalaje") = "P"
+					'.Item("incrementocolor") = "P"
+					'.Item("IncrementoEsp") = "P"
+					'.Item("DondeIncrementoEsp") = "P"
+					'.Item("ImporteIncrementoEsp") = "P"
+					'.Item("AImprimir") = "P"
+					'.Item("AFabricar") = "P"
+					'.Item("AFacturar") = "P"
+					'.Item("planificado") = "P"
+					'.Item("plan") = "P"
+					'.Item("asignacion_especiales") = "P"
+					'.Item("asuncion_especiales") = "P"
+					'.Item("fecha_entrada") = "P"
+					'.Item("fecha_plazo") = "P"
+					'.Item("fecha_entrega_agencia") = "P"
+					'.Item("fecha_cliente") = "P"
+					'.Item("coste") = "P"
+					'.Item("consin") = "P"
+					'.Item("matricula") = "P"
+					'.Item("orden") = "P"
+					'.Item("FactorBarnizado") = "P"
+					'.Item("costeProduccion") = "P"
+					'.Item("FactorCosteProduccion") = "P"
+					'.Item("FactorCosteArticulo") = "P"
+					'.Item("TipoPrecioTarifa") = "P"
+					'.Item("AEmbalar") = "P"
+
+
+
+
+
+				End With
+
+				dt.Rows.Add(nuevoDoc)
+
+				Try
+					dad.Update(dt)
+				Catch ex As Exception
+					resultado = False
+
+					Debug.Print(ex.Message)
+				End Try
+
+
+				Dim strAcTotales As String = $"UPDATE documentos SET documentos.[e-mail] = '{pedido.DatosCliente.DirFacturacion.Email}', documentos.[importe bruto] = {Format(pedido.importeBruto).Replace(",", ".")}, documentos.[importe neto] = {Format(pedido.importeNeto(dirE.Dto1, dirE.Dto2)).Replace(",", ".")}, documentos.[importe total] ={Format(pedido.importeTotal(dirE.Dto1, dirE.Dto2, pedido.tasaIVA, pedido.tasaREQ)).Replace(",", ".")} WHERE (((documentos.tipodoc) ='P') AND ((documentos.codigodoc)={pedido.CodPedido}));"
+
+				Dim sqlcmd As New OleDbCommand(strAcTotales, Cons)
+
+
+				Try
+					sqlcmd.ExecuteNonQuery()
+				Catch ex As Exception
+					resultado = False
+					Debug.Print(ex.Message)
+
+				End Try
+
+
+			End If
+
+
+
+		End Using
+
+
+		Cons.Close()
+		Cons = Nothing
+
+
+		Return resultado
+
+
+
+		Return resultado
 
 	End Function
 
@@ -3040,11 +3422,9 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				Dim cd As New OleDbCommandBuilder(dad)
 				dad.UpdateCommand = cd.GetUpdateCommand()
 
-				Dim dirE As Direccion
+				Dim dirE As Direccion = pedido.DireccionEnvio
 
-				dirE = pedido.DatosCliente.DireccionesEnvio.Find(Function(dir As Direccion)
-																	 Return dir.Codsucursal = pedido.DatosCliente.DirEnvio
-																 End Function)
+
 
 				Dim nuevoDoc As DataRow = dt.NewRow()
 				With nuevoDoc
@@ -3071,33 +3451,34 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					''.Item("e_mail") = "luis@indesan.com"
 					''.Item("importe_bruto") = 999.99
 
-					'.Item("banco")=
-					'.Item("referencia")=
-					'.Item("CC1")=
-					'.Item("CC2")=
-					'.Item("DC")=
-					'.Item("NC")=
-					'.Item("com1")=
-					'.Item("com2")=
-					'.Item("dto1")=
-					'.Item("dto2")=
+					.Item("banco") = "S"
+					.Item("referencia") = IIf(pedido.Referencia = "", " ", pedido.Referencia)
+
+					.Item("CC1") = dirE.C1
+					.Item("CC2") = dirE.C2
+					.Item("DC") = dirE.DC
+					.Item("NC") = dirE.NC
+					.Item("com1") = dirE.Com1
+					.Item("com2") = dirE.Com2
+					.Item("dto1") = dirE.Dto1
+					.Item("dto2") = dirE.Dto2
 					.Item("fechacliente") = DateAdd(DateInterval.Day, 14, Now())
 					.Item("fechaf") = DateAdd(DateInterval.Day, 7, Now())
-					.Item("diasf") = 7
+					.Item("diasf") = 5
 					.Item("fecha2") = DateAdd(DateInterval.Day, 14, Now())
 					.Item("diasag") = dirE.Demora_Agencia
-					'.Item("formapago")=
-					.Item("formapagodesc") = pedido.DatosCliente.FormaPago
+					.Item("formapago") = dirE.CodFormaPago
+					.Item("formapagodesc") = dirE.DescFormaPago
 					.Item("moneda") = "EUR"
 					'.Item("fechaseleccion")=
-					'.Item("Portes")=
-					'.Item("bultos")=
+					.Item("Portes") = dirE.Porte
+					.Item("bultos") = pedido.totalBultos
 					.Item("PEDIDO") = pedido.CodPedido
 					.Item("FECHAPEDIDO") = Now()
 					.Item("VALORADO") = True
 					.Item("IMPRESO") = True
-					'.Item("IVA")=
-					'.Item("REQ")=
+					.Item("IVA") = pedido.tasaIVA
+					.Item("REQ") = pedido.tasaREQ
 					.Item("quiereetiquetas") = False
 					.Item("agrupar") = False
 					'.Item("VENCIMIENTOS")=
@@ -3109,7 +3490,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Item("SELECCIONADO") = False
 
 					'.Item("importes_e")=
-					.Item("Dias_carga") = "V"
+					.Item("Dias_carga") = dirE.Diascarga
 					'.Item("documentooriginal") =
 					.Item("retenido") = False
 					.Item("liberado") = False
@@ -3119,15 +3500,15 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					'.Item("fecha_muestra")=
 					.Item("introducido") = "CLIENTE " & Now().ToShortDateString
 					.Item("ultima_modificacion") = "CLIENTE " & Now().ToShortDateString
-					'.Item("contacto")=
+					.Item("contacto") = dirE.Contacto
 					.Item("confirmar") = True
 					.Item("confirmarAlRepre") = True
-					'.Item("fecha_confirmacion")=
+					'.Item("fecha_confirmacion") =
 					'.Item("reclamar")=
-					'.Item("fecha_reclamacion")=
+					.Item("fecha_reclamacion") = Now() ' fecha en la que se ha de confirmar
 					.Item("agrupar_alb") = False
 					.Item("fraccionar_entregas") = False
-					'.Item("articulos")=
+					.Item("articulos") = pedido.totalArticulos
 					'.Item("FECHA_RECL_MUESTRA")=
 					'.Item("MODO_RECLAMACION")=
 					'.Item("FECHA_FABRICA")=
@@ -3138,8 +3519,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Item("ConfEmail") = True
 					'.Item("fecha_confirmacion_representante")=
 					.Item("emailConfirmacion") = dirE.Email
-					'.Item("IBAN")=
-					'.Item("BIC")=
+					.Item("IBAN") = dirE.IBAN
+					.Item("BIC") = dirE.BIC
 					.Item("Contabilizado") = False
 					'.Item("Asiento")=
 
@@ -3151,15 +3532,15 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Item("direccion") = dirE.Direccion
 					.Item("codpostal") = dirE.Codpostal
 					.Item("poblacion") = dirE.Poblacion
-					'.Item("codprovincia") = dirE.Provincia
-					'.Item("fax") = dirE.
+					.Item("codprovincia") = dirE.CodProvincia
+					.Item("fax") = dirE.Fax
 					.Item("telef") = dirE.Telef
-					'.Item("telef2")=
+					.Item("telef2") = dirE.Telef2
 					.Item("Observaciones") = dirE.Observaciones
 					.Item("Demora_agencia") = dirE.Demora_Agencia
 					'.Item("Direccion2")=
 					.Item("cp") = dirE.Codpostal
-					.Item("Consignatario") = dirE.NombreSucursal
+					.Item("Consignatario") = pedido.consignatario
 					.Item("DireccionPersonalizada") = False
 
 
@@ -3178,6 +3559,20 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 				End Try
 
 
+				Dim strAcTotales As String = $"UPDATE documentos SET documentos.[e-mail] = '{pedido.DatosCliente.DirFacturacion.Email}', documentos.[importe bruto] = {Format(pedido.importeBruto).Replace(",", ".")}, documentos.[importe neto] = {Format(pedido.importeNeto(dirE.Dto1, dirE.Dto2)).Replace(",", ".")}, documentos.[importe total] ={Format(pedido.importeTotal(dirE.Dto1, dirE.Dto2, pedido.tasaIVA, pedido.tasaREQ)).Replace(",", ".")} WHERE (((documentos.tipodoc) ='P') AND ((documentos.codigodoc)={pedido.CodPedido}));"
+
+				Dim sqlcmd As New OleDbCommand(strAcTotales, Cons)
+
+
+				Try
+					sqlcmd.ExecuteNonQuery()
+				Catch ex As Exception
+					resultado = False
+					Debug.Print(ex.Message)
+
+				End Try
+
+
 			End If
 
 
@@ -3189,14 +3584,13 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		Cons = Nothing
 
 
-		Return Resultado
+		Return resultado
 
 
 
 	End Function
 
 End Class
-
 
 
 
