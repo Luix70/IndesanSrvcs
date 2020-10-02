@@ -88,9 +88,6 @@ Namespace Ofertas
 			End If
 
 
-
-
-
 			'En el caso en que todo lo anterior 
 			Return Ok("{""data"": {""resultado"":""OK"" }, ""output"":" & js.Serialize(pedido) & "}")
 

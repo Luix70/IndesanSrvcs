@@ -14,6 +14,8 @@ Imports System.Security.Cryptography
 Imports System.Reflection
 Imports IndesanSrvcs
 
+
+
 Public Class QueryJson
 
 	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
@@ -3192,6 +3194,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 	Private Function AgregarLineas(pedido As PedidoCarrito) As Boolean
 		Dim resultado As Boolean = True
 
+
+
 		Dim strCadenaConsulta As String
 
 		'en principio devolvmos una tabla vacia
@@ -3220,104 +3224,123 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 				Dim cd As New OleDbCommandBuilder(dad)
 				dad.UpdateCommand = cd.GetUpdateCommand()
+				dad.InsertCommand = cd.GetInsertCommand()
 
 				Dim dirE As Direccion = pedido.DireccionEnvio
+				Dim idioma As String = pedido.DireccionEnvio.Idioma_suc.Substring(0, 2)
+				Dim linea As Long = 0
+
+				For Each art As Oferta In pedido.ListaArticulos
+
+					Dim nuevoDoc As DataRow = dt.NewRow()
+					linea = linea + 10
+
+					With nuevoDoc
+
+
+						.Item("tipodoc") = "P"
+						.Item("codigodoc") = pedido.CodPedido
+
+						.Item("Linea") = linea
+						.Item("pedido") = pedido.CodPedido
+						'.Item("albaran") = "P"
+						'.Item("fechaalbaran") = "P"
+						.Item("ped") = pedido.CodPedido
+						.Item("fechaped") = Now.ToShortDateString
+						.Item("coart") = art.Cod
+						.Item("codagrupacion") = art.Codagrupacion
+						.Item("Bultos") = art.Reservadas * art.Bultos
+						'.Item("lineaventa") = "P"
+						.Item("Cantidad") = art.Reservadas
+						.Item("descripcion") = CallByName(art.Desc, idioma, vbGet)
+						.Item("desc_linea") = 0
 
 
 
-				Dim nuevoDoc As DataRow = dt.NewRow()
-				With nuevoDoc
+						'.Item("precio") = art.obtenerPrecio(dirE.Tarifa_suc))
 
-
-					.Item("tipodoc") = "P"
-					.Item("codigodoc") = pedido.CodPedido
-
-					'.Item("Linea") = "P"
-					'.Item("pedido") = "P"
-					'.Item("albaran") = "P"
-					'.Item("fechaalbaran") = "P"
-					'.Item("ped") = "P"
-					'.Item("fechaped") = "P"
-					'.Item("coart") = "P"
-					'.Item("codagrupacion") = "P"
-					'.Item("Bultos") = "P"
-					'.Item("lineaventa") = "P"
-					'.Item("Cantidad") = "P"
-					'.Item("descripcion") = "P"
-					'.Item("desc_linea") = "P"
-					'.Item("precio") = "P"
-					'.Item("moneda") = "P"
-					'.Item("Tarifa") = "P"
-					'.Item("ConceptoEspecial") = "P"
-					'.Item("Notas") = "P"
-					'.Item("MostrarNotaPintura") = "P"
-					'.Item("MostrarNotaDescripcion") = "P"
-					'.Item("ref_linea") = "P"
-					'.Item("referencia") = "P"
-					'.Item("especial") = "P"
-					'.Item("retenido") = "P"
-					'.Item("causa_ret") = "P"
-					'.Item("fecha_muestra") = "P"
-					'.Item("Pintor") = "P"
-					'.Item("fecha_emb") = "P"
-					'.Item("seriemuestra") = "P"
-					'.Item("nummuestra") = "P"
-					'.Item("codembalaje") = "P"
-					'.Item("incrementocolor") = "P"
-					'.Item("IncrementoEsp") = "P"
-					'.Item("DondeIncrementoEsp") = "P"
-					'.Item("ImporteIncrementoEsp") = "P"
-					'.Item("AImprimir") = "P"
-					'.Item("AFabricar") = "P"
-					'.Item("AFacturar") = "P"
-					'.Item("planificado") = "P"
-					'.Item("plan") = "P"
-					'.Item("asignacion_especiales") = "P"
-					'.Item("asuncion_especiales") = "P"
-					'.Item("fecha_entrada") = "P"
-					'.Item("fecha_plazo") = "P"
-					'.Item("fecha_entrega_agencia") = "P"
-					'.Item("fecha_cliente") = "P"
-					'.Item("coste") = "P"
-					'.Item("consin") = "P"
-					'.Item("matricula") = "P"
-					'.Item("orden") = "P"
-					'.Item("FactorBarnizado") = "P"
-					'.Item("costeProduccion") = "P"
-					'.Item("FactorCosteProduccion") = "P"
-					'.Item("FactorCosteArticulo") = "P"
-					'.Item("TipoPrecioTarifa") = "P"
-					'.Item("AEmbalar") = "P"
+						.Item("moneda") = "EUR"
+						.Item("Tarifa") = dirE.Tarifa_suc
+						'.Item("ConceptoEspecial") = "P"
+						'.Item("Notas") = "P"
+						'.Item("MostrarNotaPintura") = "P"
+						'.Item("MostrarNotaDescripcion") = "P"
+						.Item("ref_linea") = CallByName(art.Desc2, idioma, vbGet)
+						.Item("referencia") = IIf(pedido.Referencia = "", "OFERTA FLASH", pedido.Referencia)
+						'.Item("especial") = "P"
+						'.Item("retenido") = "P"
+						'.Item("causa_ret") = "P"
+						.Item("fecha_muestra") = Now.ToShortDateString
+						.Item("Pintor") = 0
+						.Item("fecha_emb") = New Date(2000, 1, 1)
+						'.Item("seriemuestra") = "P"
+						'.Item("nummuestra") = "P"
+						.Item("codembalaje") = art.Codembalaje
+						.Item("incrementocolor") = 1
+						.Item("IncrementoEsp") = False
+						.Item("DondeIncrementoEsp") = 2
+						.Item("ImporteIncrementoEsp") = 0
+						.Item("AImprimir") = True
+						.Item("AFabricar") = True
+						.Item("AFacturar") = True
+						.Item("planificado") = False
+						.Item("plan") = 0
+						'.Item("asignacion_especiales") = "P"
+						'.Item("asuncion_especiales") = "P"
+						.Item("fecha_entrada") = Now().ToShortDateString
+						.Item("fecha_plazo") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+						.Item("fecha_entrega_agencia") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+						.Item("fecha_cliente") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+						'.Item("coste") = 
+						.Item("consin") = 0
+						'.Item("matricula") = "P"
+						.Item("orden") = "STOCK"
+						'.Item("FactorBarnizado") = "P"
+						'.Item("costeProduccion") = "P"
+						'.Item("FactorCosteProduccion") = "P"
+						'.Item("FactorCosteArticulo") = "P"
+						.Item("TipoPrecioTarifa") = art.CodPrecio
+						.Item("AEmbalar") = Now().ToShortDateString
 
 
 
 
 
-				End With
+					End With
 
-				dt.Rows.Add(nuevoDoc)
+					dt.Rows.Add(nuevoDoc)
 
-				Try
-					dad.Update(dt)
-				Catch ex As Exception
-					resultado = False
+					Try
+						dad.Update(dt)
+					Catch ex As Exception
+						resultado = False
 
-					Debug.Print(ex.Message)
-				End Try
-
-
-				Dim strAcTotales As String = $"UPDATE documentos SET documentos.[e-mail] = '{pedido.DatosCliente.DirFacturacion.Email}', documentos.[importe bruto] = {Format(pedido.importeBruto).Replace(",", ".")}, documentos.[importe neto] = {Format(pedido.importeNeto(dirE.Dto1, dirE.Dto2)).Replace(",", ".")}, documentos.[importe total] ={Format(pedido.importeTotal(dirE.Dto1, dirE.Dto2, pedido.tasaIVA, pedido.tasaREQ)).Replace(",", ".")} WHERE (((documentos.tipodoc) ='P') AND ((documentos.codigodoc)={pedido.CodPedido}));"
-
-				Dim sqlcmd As New OleDbCommand(strAcTotales, Cons)
+						Debug.Print(ex.Message)
+					End Try
 
 
-				Try
-					sqlcmd.ExecuteNonQuery()
-				Catch ex As Exception
-					resultado = False
-					Debug.Print(ex.Message)
+					'Ahora el dichoso precio
+					Dim strPrecio As String = Format(art.obtenerPrecio(dirE.Tarifa_suc)).Replace(",", ".")
+					Dim strAcTotales As String = $"UPDATE documentos_desglose SET documentos_desglose.precio = {strPrecio} WHERE (((documentos_desglose.tipodoc) ='P') AND ((documentos_desglose.codigodoc)={pedido.CodPedido})  AND ((documentos_desglose.linea)={linea}));"
 
-				End Try
+					Dim sqlcmd As New OleDbCommand(strAcTotales, Cons)
+
+
+					Try
+						sqlcmd.ExecuteNonQuery()
+					Catch ex As Exception
+						resultado = False
+						Debug.Print(ex.Message)
+
+					End Try
+
+
+				Next
+
+
+
+
+
 
 
 			End If
@@ -3452,7 +3475,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					''.Item("importe_bruto") = 999.99
 
 					.Item("banco") = "S"
-					.Item("referencia") = IIf(pedido.Referencia = "", " ", pedido.Referencia)
+					.Item("referencia") = IIf(pedido.Referencia = "", "OFERTA FLASH", pedido.Referencia)
 
 					.Item("CC1") = dirE.C1
 					.Item("CC2") = dirE.C2
