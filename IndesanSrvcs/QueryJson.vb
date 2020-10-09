@@ -115,7 +115,7 @@ Public Class QueryJson
 		Private Peso_ As Single
 		Private Volumen_ As Single
 		Private codPrecio_ As Long
-
+		Private pedido_ As Long
 		Private dto_ As Single
 		Private FechaOferta_ As Date
 		Private Matricula_ As Long
@@ -318,6 +318,15 @@ Public Class QueryJson
 			End Get
 			Set(value As Literales)
 				Promo_ = value
+			End Set
+		End Property
+
+		Public Property Pedido As Long
+			Get
+				Return pedido_
+			End Get
+			Set(value As Long)
+				pedido_ = value
 			End Set
 		End Property
 
@@ -2966,6 +2975,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Id = curID
 					.Cod = row.Item("cod")
 					.Disponibles = row.Item("disponibles")
+					.Pedido = row.Item("pedido")
 					.Imagen = row.Item("imagen")
 					.Codagrupacion = row.Item("codagrupacion")
 					.Desc = New Literales With {
@@ -3347,7 +3357,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						.Item("codigodoc") = pedido.CodPedido
 
 						.Item("Linea") = linea
-						.Item("pedido") = pedido.CodPedido
+						.Item("pedido") = art.Pedido
 						'.Item("albaran") = "P"
 						'.Item("fechaalbaran") = "P"
 						.Item("ped") = pedido.CodPedido
