@@ -116,6 +116,18 @@ Public Class QueryJson
 		Private Volumen_ As Single
 		Private codPrecio_ As Long
 
+		Private dto_ As Single
+		Private FechaOferta_ As Date
+		Private Matricula_ As Long
+
+		Private Promo_ As Literales
+
+		Private Coleccion_ As String
+		Private familia_ As Long
+		Private Activa_ As Boolean
+
+
+
 
 
 		Public Property Id As Long
@@ -241,6 +253,71 @@ Public Class QueryJson
 			End Get
 			Set(value As Long)
 				Me.codPrecio_ = value
+			End Set
+		End Property
+
+		Public Property Dto As Single
+			Get
+				Return dto_
+			End Get
+			Set(value As Single)
+				dto_ = value
+			End Set
+		End Property
+
+		Public Property FechaOferta As Date
+			Get
+				Return FechaOferta_
+			End Get
+			Set(value As Date)
+				FechaOferta_ = value
+			End Set
+		End Property
+
+		Public Property Matricula As Long
+			Get
+				Return Matricula_
+			End Get
+			Set(value As Long)
+				Matricula_ = value
+			End Set
+		End Property
+
+
+
+		Public Property Coleccion As String
+			Get
+				Return Coleccion_
+			End Get
+			Set(value As String)
+				Coleccion_ = value
+			End Set
+		End Property
+
+		Public Property Familia As Long
+			Get
+				Return familia_
+			End Get
+			Set(value As Long)
+				familia_ = value
+			End Set
+		End Property
+
+		Public Property Activa As Boolean
+			Get
+				Return Activa_
+			End Get
+			Set(value As Boolean)
+				Activa_ = value
+			End Set
+		End Property
+
+		Public Property Promo As Literales
+			Get
+				Return Promo_
+			End Get
+			Set(value As Literales)
+				Promo_ = value
 			End Set
 		End Property
 
@@ -430,7 +507,11 @@ Public Class QueryJson
 					objCliente.nomComercial = ""
 				End If
 
-				objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("poblacion")) Then
+					objCliente.poblacion = dt.Rows(intCurrentRow).Item("poblacion")
+				Else
+					objCliente.poblacion = "pob"
+				End If
 
 				objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
 
@@ -742,8 +823,10 @@ Public Class QueryJson
 
 
 
+			If Not IsDBNull(row.Item("BIC")) Then
+				Me.BIC = row.Item("BIC")
+			End If
 
-			Me.BIC = row.Item("BIC")
 
 			Me.Agencia = row.Item("Agencia")
 			Me.CodAgencia = row.Item("agenciasuc")
@@ -769,13 +852,20 @@ Public Class QueryJson
 			Me.Dto1 = row.Item("desc1")
 			Me.Dto2 = row.Item("desc2")
 
-			Me.Fax = row.Item("fax")
-			Me.IBAN = row.Item("IBAN")
+			If Not IsDBNull(row.Item("fax")) Then
+				Me.Fax = row.Item("fax")
+			End If
 
-			Me.C1 = row.Item("C1")
-			Me.C2 = row.Item("C2")
-			Me.DC = row.Item("DC")
-			Me.NC = row.Item("NC")
+			If Not IsDBNull(row.Item("IBAN")) Then
+				Me.IBAN = row.Item("IBAN")
+				Me.C1 = row.Item("C1")
+				Me.C2 = row.Item("C2")
+				Me.DC = row.Item("DC")
+				Me.NC = row.Item("NC")
+			End If
+
+
+
 
 
 			Me.Porte = row.Item("TipoPorte")
@@ -2889,12 +2979,27 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						.fr = row.Item("desc2_fr")
 					}
 
+					If (Not IsDBNull(row.Item("promo_es")) And Not IsDBNull(row.Item("promo_es")) And Not IsDBNull(row.Item("promo_es"))) Then
+						.Promo = New Literales With {
+						.es = row.Item("promo_es"),
+						.en = row.Item("promo_en"),
+						.fr = row.Item("promo_fr")
+					}
+					End If
+
 					.Precios = precios
 					.Bultos = row.Item("Bultos")
 					.Codembalaje = row.Item("Codembalaje")
 					.Peso = row.Item("Peso")
 					.Volumen = row.Item("Volumen")
 					.CodPrecio = row.Item("Codprecio")
+					.Dto = row.Item("dto_linea")
+					.FechaOferta = row.Item("FechaOferta")
+					.Matricula = row.Item("matricula")
+					.Coleccion = row.Item("Coleccion")
+					.Familia = row.Item("tipo")
+					.Activa = row.Item("OfertaActiva")
+
 				End With
 			End If
 
