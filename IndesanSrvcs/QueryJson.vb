@@ -2976,7 +2976,10 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					.Cod = row.Item("cod")
 					.Disponibles = row.Item("disponibles")
 					.Pedido = row.Item("pedido")
-					.Imagen = row.Item("imagen")
+					If Not IsDBNull(row.Item("imagen")) Then
+						.Imagen = row.Item("imagen")
+					End If
+
 					.Codagrupacion = row.Item("codagrupacion")
 					.Desc = New Literales With {
 						.es = row.Item("desc_es"),
