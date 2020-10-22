@@ -376,7 +376,7 @@ Public Class AuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
+		Dim config As String = Environment.GetEnvironmentVariable("myCon")
 
 		Dim strCadenaConsulta As String
 
@@ -451,7 +451,7 @@ Public Class TokenAuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
+		Dim config As String = Environment.GetEnvironmentVariable("myCon")
 
 		Dim strCadenaConsulta As String
 

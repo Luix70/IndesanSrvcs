@@ -9,7 +9,7 @@ Imports System.IdentityModel.Tokens.Jwt
 Namespace Controllers
 	Friend Module TokenGenerator
 		Public Function GenerateTokenJwt(username As String, cr As Credencial) As String
-			Dim secretKey As String = ConfigurationManager.AppSettings("JWT_SECRET_KEY")
+			Dim secretKey As String = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 			Dim audienceToken As String = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
 			Dim issuerToken As String = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
 			Dim expiretime As String = ConfigurationManager.AppSettings("JWT_EXPIRE_MINUTES")
@@ -69,7 +69,7 @@ Namespace Controllers
 					Return New JwtSecurityToken()
 				End If
 
-				Dim secretKey = ConfigurationManager.AppSettings("JWT_SECRET_KEY")
+				Dim secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 				Dim audienceToken = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
 				Dim issuerToken = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
 				Dim securityKey = New SymmetricSecurityKey(System.Text.Encoding.Default.GetBytes(secretKey))

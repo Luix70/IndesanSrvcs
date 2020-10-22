@@ -45,7 +45,7 @@ Namespace Controllers
 			End If
 
 			Try
-				Dim secretKey = ConfigurationManager.AppSettings("JWT_SECRET_KEY")
+				Dim secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 				Dim audienceToken = ConfigurationManager.AppSettings("JWT_AUDIENCE_TOKEN")
 				Dim issuerToken = ConfigurationManager.AppSettings("JWT_ISSUER_TOKEN")
 				Dim securityKey = New SymmetricSecurityKey(System.Text.Encoding.Default.GetBytes(secretKey))

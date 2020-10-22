@@ -18,7 +18,7 @@ Imports IndesanSrvcs
 
 Public Class QueryJson
 
-	Shared strConexion As String = ConfigurationManager.ConnectionStrings("myCon").ConnectionString
+	Shared strConexion As String = Environment.GetEnvironmentVariable("myCon")
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
 
@@ -522,7 +522,12 @@ Public Class QueryJson
 					objCliente.poblacion = "pob"
 				End If
 
-				objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
+				Try
+					objCliente.totalDocumentos = objCliente.obtenerDocumentos(objCliente.codigo)
+				Catch ex As Exception
+					MsgBox($"Error al obtener los documentos del cliente {objCliente.codigo} ")
+				End Try
+
 
 				Clientes.Add(objCliente, objCliente.codigo.ToString)
 
@@ -1386,7 +1391,11 @@ Public Class QueryJson
 
 				objLinea.codagrupacion = dt.Rows(intCurrentRow).Item("codagrupacion")
 
-				objLinea.Bultos = Convert.ToInt64(dt.Rows(intCurrentRow).Item("Bultos"))
+				If Not IsDBNull(dt.Rows(intCurrentRow).Item("Bultos")) Then
+					objLinea.Bultos = Convert.ToInt64(dt.Rows(intCurrentRow).Item("Bultos"))
+				Else
+					objLinea.Bultos = 0
+				End If
 
 				If IsDBNull(dt.Rows(intCurrentRow).Item("fechaped")) Then
 					objLinea.fechapedido = ""
@@ -2496,11 +2505,18 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		End If
 
 
-		Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
-		Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
-		Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
-		Dim SMTP_PASSWORD As String = ConfigurationManager.AppSettings("SMTP_PASSWORD")
+		'Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
+		'Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
+		'Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
+		'Dim SMTP_PASSWORD As String = ConfigurationManager.AppSettings("SMTP_PASSWORD")
+
 		Dim SMTP_SSL As Boolean = Boolean.Parse(ConfigurationManager.AppSettings("SMTP_SSL"))
+
+		Dim SMTP_SERVER As String = Environment.GetEnvironmentVariable("SMTP_SERVER")
+		Dim SMTP_PORT As Integer = Integer.Parse(Environment.GetEnvironmentVariable("SMTP_PORT"))
+		Dim SMTP_USER As String = Environment.GetEnvironmentVariable("SMTP_USER")
+		Dim SMTP_PASSWORD As String = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+
 
 		Dim client As New SmtpClient()
 
@@ -3390,7 +3406,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						'.Item("causa_ret") = "P"
 						.Item("fecha_muestra") = Now.ToShortDateString
 						.Item("Pintor") = 0
-						.Item("fecha_emb") = New Date(2000, 1, 1)
+						'.Item("fecha_emb") = New Date(2000, 1, 1)
 						'.Item("seriemuestra") = "P"
 						'.Item("nummuestra") = "P"
 						.Item("codembalaje") = art.Codembalaje
@@ -3411,7 +3427,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						.Item("fecha_cliente") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
 						'.Item("coste") = 
 						.Item("consin") = 0
-						'.Item("matricula") = "P"
+						.Item("matricula") = art.Matricula
 						.Item("orden") = "STOCK"
 						'.Item("FactorBarnizado") = "P"
 						'.Item("costeProduccion") = "P"
