@@ -158,6 +158,9 @@ Namespace Models
 		Private verPrecios_ As Boolean
 		Private Tarifa_ As String
 		Private TarifaP_ As String
+		Private Moneda_ As String
+		Private FactorPVP_ As String
+
 
 
 		Private AccesoDocumentos_ As New Collection
@@ -268,6 +271,24 @@ Namespace Models
 			End Get
 			Set(value As String)
 				TarifaP_ = value
+			End Set
+		End Property
+
+		Public Property Moneda As String
+			Get
+				Return Moneda_
+			End Get
+			Set(value As String)
+				Moneda_ = value
+			End Set
+		End Property
+
+		Public Property FactorPVP As String
+			Get
+				Return FactorPVP_
+			End Get
+			Set(value As String)
+				FactorPVP_ = value.Replace(",", ".")
 			End Set
 		End Property
 	End Class

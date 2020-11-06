@@ -18,7 +18,7 @@ Imports IndesanSrvcs
 
 Public Class QueryJson
 
-	Shared strConexion As String = Environment.GetEnvironmentVariable("myCon")
+	Shared strConexion As String = Environment.GetEnvironmentVariable("myConDev")
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
 
@@ -1304,7 +1304,7 @@ Public Class QueryJson
 			Dim tmpImporteBruto As Single = 0
 
 			For Each art As Oferta In Me.ListaArticulos
-				tmpImporteBruto = tmpImporteBruto + (art.obtenerPrecio(DireccionEnvio.Tarifa_suc) * art.Reservadas)
+				tmpImporteBruto = tmpImporteBruto + (art.obtenerPrecio(DireccionEnvio.Tarifa_suc) * art.Reservadas * (1 - art.Dto / 100))
 			Next
 
 
@@ -2205,6 +2205,10 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 					nc.VerPrecios = cdt.Rows(0).Item("verPrecios")
 					nc.Tarifa = cdt.Rows(0).Item("Tarifa")
 					nc.TarifaP = cdt.Rows(0).Item("TarifaP")
+					nc.Moneda = cdt.Rows(0).Item("Moneda")
+					nc.FactorPVP = cdt.Rows(0).Item("FactorPVP")
+
+
 
 					If cdt.Rows(0).Item("verPedidos") = True Then
 						nc.AccesoDocumentos.Add("1")
@@ -2575,10 +2579,10 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 	End Function
 	Private Function SendNewPassword(Username As String, password As String, strCodigoTemporal As String, codcliente As String, lan As String) As String
-		Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
+		Dim SMTP_SERVER As String = Environment.GetEnvironmentVariable("SMTP_SERVER")
 		Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
-		Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")
-		Dim SMTP_PASSWORD As String = ConfigurationManager.AppSettings("SMTP_PASSWORD")
+		Dim SMTP_USER As String = Environment.GetEnvironmentVariable("SMTP_USER")
+		Dim SMTP_PASSWORD As String = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
 		Dim SMTP_SSL As Boolean = Boolean.Parse(ConfigurationManager.AppSettings("SMTP_SSL"))
 
 		Dim client As New SmtpClient()
@@ -3008,13 +3012,27 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						.fr = row.Item("desc2_fr")
 					}
 
-					If (Not IsDBNull(row.Item("promo_es")) And Not IsDBNull(row.Item("promo_es")) And Not IsDBNull(row.Item("promo_es"))) Then
-						.Promo = New Literales With {
-						.es = row.Item("promo_es"),
-						.en = row.Item("promo_en"),
-						.fr = row.Item("promo_fr")
-					}
+					Dim promo_es As String = ""
+					If Not IsDBNull(row.Item("promo_es")) Then
+						promo_es = row.Item("promo_es")
 					End If
+					Dim promo_en As String = ""
+					If Not IsDBNull(row.Item("promo_en")) Then
+						promo_en = row.Item("promo_en")
+					End If
+					Dim promo_fr As String = ""
+					If Not IsDBNull(row.Item("promo_fr")) Then
+						promo_fr = row.Item("promo_fr")
+					End If
+
+					.Promo = New Literales With {
+						.es = promo_es,
+						.en = promo_en,
+						.fr = promo_fr
+					}
+
+
+
 
 					.Precios = precios
 					.Bultos = row.Item("Bultos")
@@ -3055,7 +3073,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 	End Function
 	Public Function CustData(cliente As String) As String
 
-		'Return "{""codCliente"": """ & cliente & """}"
+		'Return "{""codCliente"":  """ & cliente & """}"
 
 		Dim Json As String = ""
 		Dim culture As New CultureInfo("en-US")
@@ -3444,6 +3462,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 					dt.Rows.Add(nuevoDoc)
 
+					
 					Try
 						dad.Update(dt)
 					Catch ex As Exception
@@ -3467,6 +3486,116 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 						Debug.Print(ex.Message)
 
 					End Try
+
+
+
+					'TODO: AGREGAR LINEA DESCUENTO SI PROCEDE
+					If art.Dto > 0 Then
+
+
+						nuevoDoc = dt.NewRow()
+
+
+						With nuevoDoc
+
+
+							.Item("tipodoc") = "P"
+							.Item("codigodoc") = pedido.CodPedido
+
+							.Item("Linea") = linea + 1
+							.Item("pedido") = art.Pedido
+							'.Item("albaran") = "P"
+							'.Item("fechaalbaran") = "P"
+							.Item("ped") = pedido.CodPedido
+							.Item("fechaped") = Now.ToShortDateString
+							.Item("coart") = "999"
+							.Item("codagrupacion") = ";SC;"
+							.Item("Bultos") = 0
+							'.Item("lineaventa") = "P"
+							.Item("Cantidad") = art.Reservadas
+							.Item("descripcion") = "DESCUENTO WEB / WEB DISCOUNT / ESCOMPTE WEB"
+							.Item("desc_linea") = 0
+
+
+
+							'.Item("precio") = art.obtenerPrecio(dirE.Tarifa_suc))
+
+							.Item("moneda") = "EUR"
+							.Item("Tarifa") = dirE.Tarifa_suc
+							'.Item("ConceptoEspecial") = "P"
+							'.Item("Notas") = "P"
+							'.Item("MostrarNotaPintura") = "P"
+							'.Item("MostrarNotaDescripcion") = "P"
+							'.Item("ref_linea") = CallByName(art.Desc2, idioma, vbGet)
+							.Item("referencia") = IIf(pedido.Referencia = "", "OFERTA FLASH", pedido.Referencia)
+							'.Item("especial") = "P"
+							'.Item("retenido") = "P"
+							'.Item("causa_ret") = "P"
+							'.Item("fecha_muestra") = Now.ToShortDateString
+							'.Item("Pintor") = 0
+							'.Item("fecha_emb") = New Date(2000, 1, 1)
+							'.Item("seriemuestra") = "P"
+							'.Item("nummuestra") = "P"
+							.Item("codembalaje") = "SE"
+							.Item("incrementocolor") = 1
+							.Item("IncrementoEsp") = False
+							.Item("DondeIncrementoEsp") = 2
+							.Item("ImporteIncrementoEsp") = 0
+							.Item("AImprimir") = True
+							.Item("AFabricar") = False
+							.Item("AFacturar") = True
+							.Item("planificado") = True
+							.Item("plan") = 0
+							'.Item("asignacion_especiales") = "P"
+							'.Item("asuncion_especiales") = "P"
+							.Item("fecha_entrada") = Now().ToShortDateString
+							.Item("fecha_plazo") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+							.Item("fecha_entrega_agencia") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+							.Item("fecha_cliente") = DateAdd(DateInterval.Day, 14, Now()).ToShortDateString
+							'.Item("coste") = 
+							.Item("consin") = 0
+							'.Item("matricula") = art.Matricula
+							'.Item("orden") = "STOCK"
+							'.Item("FactorBarnizado") = "P"
+							'.Item("costeProduccion") = "P"
+							'.Item("FactorCosteProduccion") = "P"
+							'.Item("FactorCosteArticulo") = "P"
+							.Item("TipoPrecioTarifa") = 1
+							'.Item("AEmbalar") = Now().ToShortDateString
+
+
+
+
+
+						End With
+
+						dt.Rows.Add(nuevoDoc)
+
+
+						Try
+							dad.Update(dt)
+						Catch ex As Exception
+							resultado = False
+
+							Debug.Print(ex.Message)
+						End Try
+
+						'Ahora el dichoso precio
+						strPrecio = Format(art.obtenerPrecio(dirE.Tarifa_suc) * (-1 * art.Dto / 100)).Replace(",", ".")
+						strAcTotales = $"UPDATE documentos_desglose SET documentos_desglose.precio = {strPrecio} WHERE (((documentos_desglose.tipodoc) ='P') AND ((documentos_desglose.codigodoc)={pedido.CodPedido})  AND ((documentos_desglose.linea)={linea + 1}));"
+
+						sqlcmd = New OleDbCommand(strAcTotales, Cons)
+
+
+						Try
+							sqlcmd.ExecuteNonQuery()
+						Catch ex As Exception
+							resultado = False
+							Debug.Print(ex.Message)
+
+						End Try
+
+					End If
 
 
 				Next

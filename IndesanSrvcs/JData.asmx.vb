@@ -143,8 +143,8 @@ Public Class JData
 
 
 
-			Dim filePath As String = ConfigurationManager.AppSettings("LOCAL_VAULT") + parRuta
-
+			Dim filePath As String = Environment.GetEnvironmentVariable("LOCAL_VAULT") + parRuta
+			'Environment.GetEnvironmentVariable("LOCAL_VAULT") + parRuta
 			If parRuta.Substring(parRuta.Length - 3, 3) = "tif" Then
 
 				Dim uri As New Uri(filePath)
@@ -376,7 +376,7 @@ Public Class AuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = Environment.GetEnvironmentVariable("myCon")
+		Dim config As String = Environment.GetEnvironmentVariable("myConDev")
 
 		Dim strCadenaConsulta As String
 
@@ -451,7 +451,7 @@ Public Class TokenAuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = Environment.GetEnvironmentVariable("myCon")
+		Dim config As String = Environment.GetEnvironmentVariable("myConDev")
 
 		Dim strCadenaConsulta As String
 
