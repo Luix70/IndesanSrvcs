@@ -146,6 +146,9 @@ Namespace Controllers
 
 		End Function
 
+
+
+
 		Private Function VerificarCredenciales(login As LoginRequest) As Credencial
 			Dim qj As New QueryJson()
 

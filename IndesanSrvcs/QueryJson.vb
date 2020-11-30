@@ -2731,6 +2731,49 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		rng.GetBytes(buff)
 		Return Convert.ToBase64String(buff)
 	End Function
+
+	Function GuardarPreferencias(usuario As Credencial) As String
+		'abrir tabla credenciales
+		dt = New DataTable
+		'Consultar de nuevo para llenar dt
+		Dim strRes As String = "OK"
+		Dim Cons2 As New OleDb.OleDbConnection
+
+		Dim sql As String
+
+		sql = "SELECT Credenciales_rst.* FROM Credenciales_rst;"
+
+		Cons2.ConnectionString = strConexion
+		Cons2.Open()
+		Using dad As New OleDbDataAdapter(sql, Cons2)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				strRes = ex.Message
+
+			End Try
+
+		End Using
+
+		Cons2.Close()
+		Cons2 = Nothing
+
+		'Localizar email usuario
+		Return strRes
+
+
+
+		'actualizar valores de los campos Moneda, Idioma y FactorPVP
+
+
+
+
+
+
+	End Function
+
+
 	Function ConsultarDB(sql As String) As String
 		' hay que leerlo de nuevo
 		Dim Res = New Resultado

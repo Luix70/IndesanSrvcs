@@ -2,7 +2,8 @@
 Imports System.Web.Http
 Imports System.Web.Script.Serialization
 Imports Microsoft.IdentityModel.Tokens
-
+Imports IndesanSrvcs.Models
+Imports System.Net
 
 Namespace Controllers
 	<Authorize>
@@ -39,5 +40,25 @@ Namespace Controllers
 
 		End Function
 
+
+		<HttpPost>
+		<Route("savePrefs")>
+		Public Function Recovery(usuario As Credencial) As IHttpActionResult
+
+			If usuario Is Nothing Then
+				Throw New HttpResponseException(HttpStatusCode.BadRequest)
+				Return Ok("NoOK")
+			End If
+
+			Dim qj As New QueryJson
+			Dim strres As String
+
+			strres = qj.GuardarPreferencias(usuario)
+
+
+			'Si no hay errores...
+			Return Ok("OK")
+
+		End Function
 	End Class
 End Namespace
