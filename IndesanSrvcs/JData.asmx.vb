@@ -16,7 +16,7 @@ Imports PdfSharp.Drawing
 Imports System.Drawing
 Imports System.Drawing.Imaging
 Imports System.Web.Http
-
+Imports IndesanSrvcs.QueryJson
 
 ' Para permitir que se llame a este servicio web desde un script, usando ASP.NET AJAX, quite la marca de comentario de la línea siguiente.
 
@@ -376,7 +376,8 @@ Public Class AuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = Environment.GetEnvironmentVariable("myConDev")
+
+		Dim config As String = Environment.GetEnvironmentVariable(ConfigurationManager.AppSettings("conexionDatos"))
 
 		Dim strCadenaConsulta As String
 
@@ -451,7 +452,7 @@ Public Class TokenAuthUser
 		'Realizar toda la lógica para determinar si el usuario es válido
 		'(Consultar database etc)
 		Dim count As Int16 = 0
-		Dim config As String = Environment.GetEnvironmentVariable("myConDev")
+		Dim config As String = Environment.GetEnvironmentVariable(ConfigurationManager.AppSettings("conexionDatos"))
 
 		Dim strCadenaConsulta As String
 

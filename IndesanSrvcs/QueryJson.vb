@@ -16,9 +16,10 @@ Imports IndesanSrvcs
 
 
 
+
 Public Class QueryJson
 
-	Shared strConexion As String = Environment.GetEnvironmentVariable("myConDev")
+	Shared strConexion As String = Environment.GetEnvironmentVariable(ConfigurationManager.AppSettings("conexionDatos"))
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
 
@@ -872,11 +873,13 @@ Public Class QueryJson
 
 			If Not IsDBNull(row.Item("IBAN")) Then
 				Me.IBAN = row.Item("IBAN")
-				Me.C1 = row.Item("C1")
-				Me.C2 = row.Item("C2")
-				Me.DC = row.Item("DC")
-				Me.NC = row.Item("NC")
+
 			End If
+
+			If Not IsDBNull(row.Item("C1")) Then Me.C1 = row.Item("C1")
+			If Not IsDBNull(row.Item("C2")) Then Me.C2 = row.Item("C2")
+			If Not IsDBNull(row.Item("DC")) Then Me.DC = row.Item("DC")
+			If Not IsDBNull(row.Item("NC")) Then Me.NC = row.Item("NC")
 
 
 
@@ -2741,7 +2744,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 		Dim sql As String
 
-		sql = "SELECT Credenciales_rst.* FROM Credenciales_rst;"
+		sql = $"SELECT Credenciales_rst.* FROM Credenciales_rst WHERE Credenciales_rst.email ='{usuario.Email}';"
 
 		Cons2.ConnectionString = strConexion
 		Cons2.Open()
@@ -2754,17 +2757,40 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 			End Try
 
+
+
+			Cons2.Close()
+			Cons2 = Nothing
+
+			'Localizar email usuario
+
+			If dt.Rows.Count = 1 Then
+				'actualizar valores de los campos Moneda, Idioma y FactorPVP
+				Dim cb As New OleDbCommandBuilder(dad)
+				dad.UpdateCommand = cb.GetUpdateCommand()
+
+				dt.Rows(0).Item("FactorPVP") = usuario.FactorPVP.Replace(".", ",")
+				dt.Rows(0).Item("Idioma") = usuario.Idioma
+				dt.Rows(0).Item("Moneda") = usuario.Moneda
+
+				Try
+					dad.Update(dt)
+					strRes = "OK"
+				Catch ex As Exception
+					strRes = ex.Message
+
+				End Try
+
+
+			Else
+				strRes = "No encontrado el usuario"
+			End If
+
+			Return strRes
+
+
+
 		End Using
-
-		Cons2.Close()
-		Cons2 = Nothing
-
-		'Localizar email usuario
-		Return strRes
-
-
-
-		'actualizar valores de los campos Moneda, Idioma y FactorPVP
 
 
 
@@ -3505,7 +3531,7 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 					dt.Rows.Add(nuevoDoc)
 
-					
+
 					Try
 						dad.Update(dt)
 					Catch ex As Exception
@@ -3769,8 +3795,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 					.Item("zona_agencia") = dirE.Zona_agencia
 					.Item("agencia") = dirE.CodAgencia
-					.Item("rep1") = dirE.rep1
-					.Item("rep2") = dirE.rep2
+					.Item("rep1") = dirE.Rep1
+					.Item("rep2") = dirE.Rep2
 
 					.Item("sucursal") = pedido.DatosCliente.DirEnvio
 					.Item("sucursalProcedencia") = pedido.DatosCliente.DireccionesEnvio.Item(0).Codsucursal
