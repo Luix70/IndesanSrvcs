@@ -1560,6 +1560,128 @@ Public Class QueryJson
 		Public Bultos As Long
 
 	End Class
+	Private Class Recogida
+		Private codIncidencia_ As Long
+		Private fechaNota_ As Date
+		Private codNota_ As Long
+		Private cliente_ As String
+		Private coart_ As String
+		Private descripcion_ As String
+		Private descripcion2_ As String
+		Private causa_ As String
+		Private tipoDoc_ As String
+		Private codigoDoc_ As Long
+		Private referencia_ As String
+		Private componente_ As String
+
+		Public Property CodIncidencia As Long
+			Get
+				Return codIncidencia_
+			End Get
+			Set(value As Long)
+				codIncidencia_ = value
+			End Set
+		End Property
+
+		Public Property FechaNota As Date
+			Get
+				Return fechaNota_
+			End Get
+			Set(value As Date)
+				fechaNota_ = value
+			End Set
+		End Property
+
+		Public Property CodNota As Long
+			Get
+				Return codNota_
+			End Get
+			Set(value As Long)
+				codNota_ = value
+			End Set
+		End Property
+
+		Public Property Cliente As String
+			Get
+				Return cliente_
+			End Get
+			Set(value As String)
+				cliente_ = value
+			End Set
+		End Property
+
+		Public Property Coart As String
+			Get
+				Return coart_
+			End Get
+			Set(value As String)
+				coart_ = value
+			End Set
+		End Property
+
+		Public Property Descripcion As String
+			Get
+				Return descripcion_
+			End Get
+			Set(value As String)
+				descripcion_ = value
+			End Set
+		End Property
+
+		Public Property Descripcion2 As String
+			Get
+				Return descripcion2_
+			End Get
+			Set(value As String)
+				descripcion2_ = value
+			End Set
+		End Property
+
+		Public Property Causa As String
+			Get
+				Return causa_
+			End Get
+			Set(value As String)
+				causa_ = value
+			End Set
+		End Property
+
+		Public Property TipoDoc As String
+			Get
+				Return tipoDoc_
+			End Get
+			Set(value As String)
+				tipoDoc_ = value
+			End Set
+		End Property
+
+		Public Property CodigoDoc As Long
+			Get
+				Return codigoDoc_
+			End Get
+			Set(value As Long)
+				codigoDoc_ = value
+			End Set
+		End Property
+
+		Public Property Referencia As String
+			Get
+				Return referencia_
+			End Get
+			Set(value As String)
+				referencia_ = value
+			End Set
+		End Property
+
+		Public Property Componente As String
+			Get
+				Return componente_
+			End Get
+			Set(value As String)
+				componente_ = value
+			End Set
+		End Property
+	End Class
 	Private Class FichaCliente
 		'Tabla Clientes
 		Private _codigo1 As String
@@ -1927,6 +2049,89 @@ Public Class QueryJson
 
 
 	End Function
+
+	Public Function RecogidasCliente(id As String) As String
+		Dim Json As String = ""
+		Dim culture As New CultureInfo("en-US")
+		intCurrentRow = 0
+		Dim js As JavaScriptSerializer
+		js = New JavaScriptSerializer()
+		js.MaxJsonLength = 100000000
+
+		Dim res As New List(Of Recogida)
+
+		Dim strCadenaConsulta As String
+
+		strCadenaConsulta = $"SELECT RecogidasWeb.* FROM RecogidasWeb WHERE (((RecogidasWeb.cliente)='{id}'));"
+		Dim Cons As New OleDb.OleDbConnection
+		Cons.ConnectionString = strConexion
+		Cons.Open()
+
+		dt = New DataTable
+
+		Using dad As New OleDb.OleDbDataAdapter(strCadenaConsulta, Cons)
+
+			Try
+				dad.Fill(dt)
+			Catch ex As Exception
+				MsgBox(ex.Message)
+			End Try
+
+
+		End Using
+
+		Cons.Close()
+		Cons = Nothing
+
+
+
+		If dt.Rows.Count > 0 Then
+
+			Dim curRow As Long
+
+			For curRow = 0 To dt.Rows.Count - 1
+				Dim rec As New Recogida
+
+				With dt.Rows(curRow)
+
+					If Not IsDBNull(.Item("causa")) Then
+						rec.Causa = .Item("causa")
+					End If
+
+					rec.Cliente = .Item("cliente")
+					rec.Coart = .Item("Coart")
+					rec.CodigoDoc = .Item("CodigoDoc")
+					rec.CodIncidencia = .Item("CodIncidencia")
+					rec.CodNota = .Item("CodNota")
+
+					If Not IsDBNull(.Item("causa")) Then
+						rec.Componente = .Item("Componente")
+					End If
+
+					rec.Descripcion = .Item("Descripcion")
+					rec.Descripcion2 = .Item("Descripcion2")
+					rec.FechaNota = .Item("FechaNota")
+					rec.Referencia = .Item("Referencia")
+					rec.TipoDoc = .Item("TipoDoc")
+
+				End With
+
+				res.Add(rec)
+
+			Next
+
+
+
+
+		End If
+
+		Json = js.Serialize(res)
+		Return Json
+
+
+
+	End Function
+
 	Public Function GenerarScanJson(parTipodoc As String, parCodigodoc As String) As Object
 
 
@@ -3318,9 +3523,6 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 
 						End If
 					End If
-
-
-
 				Next
 
 				If Not blnfound Then
@@ -3376,8 +3578,6 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 			End If
 
 		End Using
-
-
 
 		Cons.Close()
 		Cons = Nothing

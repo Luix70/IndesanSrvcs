@@ -21,6 +21,15 @@ Namespace Controllers
 		End Function
 
 		<HttpGet>
+		<Route("GetRecogidas/{id}")>
+		Public Function GetRecogidas(ByVal id As String) As IHttpActionResult
+			'Dim customer As String = "{" & $"""id"": ""{id}""" & "}"
+			Dim qj As New QueryJson
+			Dim customer As String = qj.RecogidasCliente(id)
+			Return Ok(customer)
+		End Function
+
+		<HttpGet>
 		<Route("GetAll")>
 		Public Function GetAll() As IHttpActionResult
 
