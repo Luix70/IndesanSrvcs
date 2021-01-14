@@ -2717,6 +2717,8 @@ FROM Scan_Archivos INNER JOIN ((scan_tipos_imagenes INNER JOIN Scan_imgs ON scan
 		End If
 
 
+
+
 		'Dim SMTP_SERVER As String = ConfigurationManager.AppSettings("SMTP_SERVER")
 		'Dim SMTP_PORT As Integer = Integer.Parse(ConfigurationManager.AppSettings("SMTP_PORT"))
 		'Dim SMTP_USER As String = ConfigurationManager.AppSettings("SMTP_USER")

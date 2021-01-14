@@ -92,7 +92,7 @@ Namespace Controllers
 			If candidato Is Nothing Then
 				Throw New HttpResponseException(HttpStatusCode.BadRequest)
 			End If
-
+			If candidato.lan Is Nothing Then candidato.lan = "ES"
 			strResultado = VerificarCandidato(candidato)
 
 
