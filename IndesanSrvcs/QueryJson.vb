@@ -20,6 +20,9 @@ Imports IndesanSrvcs
 Public Class QueryJson
 
 	Shared strConexion As String = Environment.GetEnvironmentVariable(ConfigurationManager.AppSettings("conexionDatos"))
+
+
+
 	Shared dt As DataTable
 	Shared intCurrentRow As Integer = 0
 
@@ -2019,6 +2022,7 @@ Public Class QueryJson
 
 
 				res.Found = True
+
 				'res.codigo = id
 				'res.cif = .Item("cif")
 				'res.cp1 = .Item("cp1")
@@ -2038,6 +2042,7 @@ Public Class QueryJson
 				'res.tarifa = .Item("tarifa")
 				'res.telef = .Item("telef")
 				'res.telRepresentante = .Item("telRepresentante")
+
 			End With
 
 

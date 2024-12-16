@@ -8,12 +8,19 @@ Imports IndesanSrvcs.Models
 
 Namespace Controllers
 	<AllowAnonymous>
-	<RoutePrefix("api/login")>
+	<RoutePrefix("api")>
 	Public Class LoginController
 		Inherits ApiController
+		<HttpGet> <Route("cc/{matricula}")> Public Function GetMat(ByVal matricula As String) As IHttpActionResult
+
+			Return Redirect("https://indesan.org:3443/Fabrica/GetMat/" + matricula)
+
+		End Function
+
+
 
 		<HttpPost>
-		<Route("mensaje")>
+		<Route("login/mensaje")>
 		Public Function mensaje(<FromBody> msg As Newtonsoft.Json.Linq.JObject) As IHttpActionResult
 			Dim qj As New QueryJson
 
@@ -24,20 +31,20 @@ Namespace Controllers
 		End Function
 
 		<HttpGet>
-		<Route("echoping")>
+		<Route("login/echoping")>
 		Public Function EchoPing() As IHttpActionResult
 			Return Ok(True)
 		End Function
 
 		<HttpGet>
-		<Route("echouser")>
+		<Route("login/echouser")>
 		Public Function EchoUser() As IHttpActionResult
 			Dim identity As IIdentity = Thread.CurrentPrincipal.Identity
 			Return Ok($" IPrincipal-user: {identity.Name} - IsAuthenticated: {identity.IsAuthenticated}")
 		End Function
 
 		<HttpPost>
-		<Route("authenticate")>
+		<Route("login/authenticate")>
 		Public Function Authenticate(login As LoginRequest) As IHttpActionResult
 			If login Is Nothing Then
 				Throw New HttpResponseException(HttpStatusCode.BadRequest)
@@ -58,7 +65,7 @@ Namespace Controllers
 
 		End Function
 		<HttpPost>
-		<Route("changePass")>
+		<Route("login/changePass")>
 		Public Function changePass(npr As newPasswordRequest) As IHttpActionResult
 			If npr Is Nothing Then
 				Throw New HttpResponseException(HttpStatusCode.BadRequest)
@@ -86,7 +93,7 @@ Namespace Controllers
 
 		End Function
 		<HttpPost>
-		<Route("register")>
+		<Route("login/register")>
 		Public Function Register(candidato As RegisterRequest) As IHttpActionResult
 			Dim strResultado As String
 			If candidato Is Nothing Then
@@ -106,7 +113,7 @@ Namespace Controllers
 
 		End Function
 		<HttpPost>
-		<Route("activate")>
+		<Route("login/activate")>
 		Public Function Activate(candidato As ActivationRequest) As IHttpActionResult
 			Dim strResultado As String
 			If candidato Is Nothing Then
@@ -126,7 +133,7 @@ Namespace Controllers
 
 		End Function
 		<HttpPost>
-		<Route("passwordRecovery")>
+		<Route("login/passwordRecovery")>
 		Public Function Recovery(candidato As RegisterRequest) As IHttpActionResult
 			Dim strResultado As String
 			If candidato Is Nothing Then
